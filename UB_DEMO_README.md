@@ -41,10 +41,23 @@ Visit http://localhost:3000 to see the UB-branded interface.
 
 ### Deploy to AWS
 
-**Frontend Only** (if backend is already deployed):
+**Prerequisites:**
+1. Push your branch to GitHub: `git push origin fpenland/demo/UB`
+2. Have your deployment parameters ready (PROJECT_NAME, PDF_BUCKET, HTML_BUCKET, ROLE_ARN)
+
+**Deploy UB Demo Branch:**
 ```bash
 cd PDF_accessability_UI
-./deploy-frontend.sh
+chmod +x deploy-frontend-ub.sh
+./deploy-frontend-ub.sh <PROJECT_NAME> <PDF_BUCKET> <HTML_BUCKET> <ROLE_ARN>
+```
+
+The `deploy-frontend-ub.sh` script is specifically configured to deploy the `fpenland/demo/UB` branch.
+
+**Alternative - Deploy Main Branch:**
+```bash
+cd PDF_accessability_UI
+./deploy-frontend.sh <PROJECT_NAME> <PDF_BUCKET> <HTML_BUCKET> <ROLE_ARN>
 ```
 
 **Full Deployment** (backend + frontend):
