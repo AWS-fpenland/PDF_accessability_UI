@@ -201,10 +201,10 @@ const LandingPage = () => {
           </Typography>
           <Typography variant="body1" component="h3" paragraph>
             To test out this open‐source solution,{' '}
-            <Box component="span" sx={{ color: '#FFC627', fontWeight: 'bold' }}>
+            <Box component="span" sx={{ color: '#00a69c', fontWeight: 'bold' }}>
               click the button to the right
             </Box>{' '}
-            to briefly create an account, upload your document, and receive your
+            to create an account, upload your document, and receive your
             remediated PDF in return.
           </Typography>
 
@@ -217,13 +217,13 @@ const LandingPage = () => {
             }}
           >
             <Typography variant="body1" component="h3" sx={{ mr: 1, fontWeight: 'bold' }}>
-              Provided by:
+              Powered by:
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <img
-                src={asuLogo}
-                alt="ASU AI CIC Logo (white)"
-                style={{ height: 70, width: 'auto', marginRight: '16px' }}
+                src={ubLogo}
+                alt="University at Buffalo Logo"
+                style={{ height: 60, width: 'auto', marginRight: '16px', backgroundColor: '#fff', padding: '8px', borderRadius: '4px' }}
               />
               <img
                 src={awsLogo}
@@ -253,7 +253,7 @@ const LandingPage = () => {
               component="h2"
               sx={{
                 mb: 4,
-                color: '#FFC627',
+                color: '#00a69c',
                 textAlign: 'center',
                 fontWeight: 'bold',
               }}
@@ -274,7 +274,7 @@ const LandingPage = () => {
                 />
               }
               sx={{
-                backgroundColor: '#FFC627',
+                backgroundColor: '#00a69c',
                 color: '#000',
                 fontWeight: 'bold',
                 fontSize: '1.2rem',
@@ -288,11 +288,11 @@ const LandingPage = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 '&:hover': {
-                  backgroundColor: '#e6ae22',
+                  backgroundColor: '#008c84',
                   transform: 'scale(1.05)',
                 },
                 '&.MuiLoadingButton-loading': {
-                  backgroundColor: '#FFC627',
+                  backgroundColor: '#00a69c',
                 },
               }}
             >
@@ -316,11 +316,11 @@ const LandingPage = () => {
         </Box>
       </Box>
 
-      {/* Thin Yellow Line */}
+      {/* Thin UB Blue Line */}
       <Box
         sx={{
           height: '5px',
-          backgroundColor: '#FFC627',
+          backgroundColor: '#005bbb',
         }}
       />
 
