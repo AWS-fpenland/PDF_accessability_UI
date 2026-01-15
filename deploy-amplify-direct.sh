@@ -68,7 +68,7 @@ if [ -z "$PDF_TO_HTML_BUCKET" ]; then
 fi
 
 # Get AWS region
-AWS_REGION=$(aws configure get region || echo "us-east-1")
+AWS_REGION=us-east-1
 
 # Validate required outputs
 if [ -z "$AMPLIFY_APP_ID" ] || [ "$AMPLIFY_APP_ID" = "None" ]; then
@@ -145,7 +145,7 @@ REACT_APP_USER_POOL_DOMAIN=$REACT_APP_USER_POOL_DOMAIN
 
 # Amplify Configuration
 REACT_APP_HOSTED_UI_URL=$REACT_APP_AMPLIFY_APP_URL
-REACT_APP_AUTHORITY=$REACT_APP_USER_POOL_DOMAIN
+REACT_APP_AUTHORITY=cognito-idp.$AWS_REGION.amazonaws.com/$REACT_APP_USER_POOL_ID
 
 # S3 Buckets
 REACT_APP_PDF_BUCKET_NAME=${PDF_TO_PDF_BUCKET:-}
