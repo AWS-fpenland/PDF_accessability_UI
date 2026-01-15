@@ -1,9 +1,10 @@
-// Colors for your theme
-export const PRIMARY_MAIN = '#1976d2';  // Your primary color (blue)
-export const SECONDARY_MAIN = '#ff4081';  // Your secondary color (pink)
-export const CHAT_LEFT_PANEL_BACKGROUND = '#2c3e50';  // Background color for left panel
-export const HEADER_BACKGROUND = '#34495e';  // Background color for header
-export const primary_50 = '#e3f2fd';  // Lighter shade of primary color
+// University at Buffalo Brand Colors
+// Based on UB Brand Guidelines: https://buffalo.edu/brand/creative/color/color-palette.html
+export const PRIMARY_MAIN = '#005bbb';  // UB Blue (PMS 2935)
+export const SECONDARY_MAIN = '#00a69c';  // Lake LaSalle (accent color)
+export const CHAT_LEFT_PANEL_BACKGROUND = '#002f56';  // Harriman Blue (darker UB blue)
+export const HEADER_BACKGROUND = '#005bbb';  // UB Blue
+export const primary_50 = '#e6f0ff';  // Lighter shade of UB Blue
 
 export const isMaintenanceMode = process.env.REACT_APP_MAINTENANCE_MODE === 'true';
 

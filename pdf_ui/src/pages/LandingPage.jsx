@@ -25,7 +25,7 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import CloseIcon from '@mui/icons-material/Close';
 
 // Images
-import asuLogo from '../assets/ASU_CIC_LOGO_WHITE.png';
+import ubLogo from '../assets/ub-logo.svg';
 import gradientImg from '../assets/Gradient.svg';
 import awsLogo from '../assets/POWERED_BY_AWS.png';
 import bottomGradient from '../assets/bottom_gradient.svg';
@@ -34,20 +34,20 @@ import bottomGradient from '../assets/bottom_gradient.svg';
 import { styled } from '@mui/system';
 
 const StyledLink = styled(Link)(({ theme }) => ({
-  color: '#8C1D40',
+  color: '#005bbb',
   textDecoration: 'underline',
   component: 'a',
   '&:hover': {
-    color: '#70122F',
+    color: '#002f56',
   },
 }));
 
 const StyledEmailLink = styled(Link)(({ theme }) => ({
-  color: '#8C1D40',
+  color: '#005bbb',
   textDecoration: 'none',
   component: 'a',
   '&:hover': {
-    color: '#70122F',
+    color: '#002f56',
     textDecoration: 'underline',
   },
 }));
@@ -125,10 +125,10 @@ const LandingPage = () => {
         flexDirection: 'column',
       }}
     >
-      {/* Top Black Bar */}
+      {/* Top UB Blue Bar */}
       <Box
         sx={{
-          backgroundColor: '#000',
+          backgroundColor: '#005bbb',
           height: '36px',
           width: '100%',
           display: 'flex',
@@ -152,12 +152,12 @@ const LandingPage = () => {
         }}
       />
 
-      {/* Black Section with Main Content */}
+      {/* UB Blue Section with Main Content */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: 'row',
-          backgroundColor: '#000',
+          backgroundColor: '#005bbb',
           color: '#fff',
           minHeight: '65vh',
           alignItems: 'center',

@@ -47,7 +47,7 @@ const InformationBlurb = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            borderTop: '2px solid #8c1d40',
+            borderTop: '2px solid #005bbb',
             position: 'relative',
             minHeight: { xs: '100px', sm: '140px' },
             margin: { xs: '0 auto', sm: '0' }
@@ -55,7 +55,7 @@ const InformationBlurb = () => {
         >
           <Box
             sx={{
-              backgroundColor: '#ffc627',
+              backgroundColor: '#00a69c',
               padding: { xs: 0.75, sm: 1 },
               borderRadius: 1,
               marginBottom: { xs: 1.5, sm: 2 },
@@ -86,11 +86,11 @@ const InformationBlurb = () => {
             <Box 
               component="h3" 
               sx={{ 
-                fontFamily: "'Geist', sans-serif", 
+                fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif", 
                 fontWeight: 600, 
                 fontSize: { xs: '12px', sm: '14px' }, 
                 lineHeight: { xs: '16px', sm: '20px' }, 
-                color: '#020617', 
+                color: '#002f56', 
                 margin: 0 
               }}
             >
@@ -99,11 +99,11 @@ const InformationBlurb = () => {
             <Box 
               component="p" 
               sx={{ 
-                fontFamily: "'Geist', sans-serif", 
+                fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif", 
                 fontWeight: 400, 
                 fontSize: { xs: '11px', sm: '14px' }, 
                 lineHeight: { xs: '14px', sm: '20px' }, 
-                color: '#1e293b', 
+                color: '#666666', 
                 margin: 0 
               }}
             >

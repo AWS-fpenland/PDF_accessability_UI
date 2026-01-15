@@ -19,21 +19,21 @@ const HeroSection = () => {
   };
 
   const heroTitleStyle = {
-    fontFamily: "'Geist', sans-serif",
+    fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
     fontWeight: '600',
     fontSize: '28px',
     lineHeight: '36px',
-    color: '#020617',
+    color: '#005bbb',
     margin: '0',
     whiteSpace: 'nowrap'
   };
 
   const heroDescriptionStyle = {
-    fontFamily: "'Geist', sans-serif",
+    fontFamily: "'Roboto', 'Helvetica Neue', Arial, sans-serif",
     fontWeight: '400',
     fontSize: '20px',
     lineHeight: '30px',
-    color: '#1e293b',
+    color: '#002f56',
     margin: '0',
     maxWidth: '480px',
     width: '100%'
@@ -42,10 +42,10 @@ const HeroSection = () => {
   return (
     <div style={heroSectionStyle}>
       <div style={heroContentStyle}>
-        <h1 style={heroTitleStyle}>PDF Remediation</h1>
+        <h1 style={heroTitleStyle}>PDF Accessibility Solution</h1>
         <p style={heroDescriptionStyle}>
-          Artificial intelligence-powered open-source solution designed to
-          improve digital accessibility for everyone.
+          University at Buffalo's AI-powered solution designed to
+          improve digital accessibility and WCAG compliance for everyone.
         </p>
       </div>
     </div>

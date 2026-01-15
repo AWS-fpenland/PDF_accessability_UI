@@ -69,7 +69,7 @@ const LeftNav = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => 
         {/* Header - Hidden when collapsed on desktop, always shown on mobile */}
         {(!isCollapsed || isMobile) && (
           <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ marginTop: 4 }}>
-            About this Solution
+            UB PDF Accessibility
           </Typography>
         )}
 
@@ -135,16 +135,16 @@ const LeftNav = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => 
             </Box>
             <Divider sx={{ marginBottom: 2 }} />
             <Typography variant="body2" gutterBottom>
-              This solution is available open source and can be added to your AWS account for usage and testing.
-              Review documentation and access the GitHub repo at:
+              This solution is available for University at Buffalo and can be customized for your department's needs.
+              For more information about the underlying technology:
             </Typography>
             <Typography variant="body2" gutterBottom>
               <Link href="https://github.com/ASUCICREPO/PDF_Accessibility" target="_blank" rel="noopener noreferrer">
-                GitHub Repo
+                View Source Documentation
               </Link>
             </Typography>
             <Typography variant="body2" gutterBottom>
-              Have questions or need support? Email us: <strong>ai-cic@amazon.com</strong>
+              Have questions or need support? Contact UB IT Services or email: <strong>ub-accessibility@buffalo.edu</strong>
             </Typography>
           </CardContent>
         </Card>
