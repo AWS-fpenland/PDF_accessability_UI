@@ -4,7 +4,7 @@ set -euo pipefail
 # --------------------------------------------------
 # Direct Amplify Deployment Script
 # Builds locally and deploys directly to Amplify
-# Usage: ./deploy-amplify-direct.sh
+# Usage: ./deploy-amplify-direct.sh [PDF_BUCKET] [HTML_BUCKET]
 # --------------------------------------------------
 
 echo "🚀 Starting Direct Amplify Deployment..."
@@ -13,6 +13,10 @@ echo "  1. Retrieve backend configuration from CloudFormation"
 echo "  2. Build the React app locally"
 echo "  3. Deploy directly to Amplify"
 echo ""
+
+# Parse optional arguments
+PDF_TO_PDF_BUCKET="${1:-}"
+PDF_TO_HTML_BUCKET="${2:-}"
 
 # --------------------------------------------------
 # Retrieve CDK Outputs
@@ -44,18 +48,24 @@ REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT=$(get_output "UpdateFirstSignInEndpoint"
 REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT=$(get_output "CheckUploadQuotaEndpoint")
 REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT=$(get_output "UpdateAttributesApiEndpoint377B5108")
 
-# Get bucket names from stack resources
-PDF_TO_PDF_BUCKET=$(aws cloudformation describe-stack-resources \
-  --stack-name "$STACK_NAME" \
-  --query "StackResources[?ResourceType=='AWS::S3::Bucket' && contains(PhysicalResourceId, 'pdfaccessibility')].PhysicalResourceId" \
-  --output text \
-  --no-cli-pager 2>/dev/null | head -n1 || echo "")
+# Get bucket names from parameters or try to auto-detect
+if [ -z "$PDF_TO_PDF_BUCKET" ]; then
+  echo "Attempting to auto-detect PDF-to-PDF bucket..."
+  PDF_TO_PDF_BUCKET=$(aws cloudformation describe-stack-resources \
+    --stack-name "$STACK_NAME" \
+    --query "StackResources[?ResourceType=='AWS::S3::Bucket' && contains(PhysicalResourceId, 'pdfaccessibility')].PhysicalResourceId" \
+    --output text \
+    --no-cli-pager 2>/dev/null | head -n1 || echo "")
+fi
 
-PDF_TO_HTML_BUCKET=$(aws cloudformation describe-stack-resources \
-  --stack-name "$STACK_NAME" \
-  --query "StackResources[?ResourceType=='AWS::S3::Bucket' && contains(PhysicalResourceId, 'pdf2html')].PhysicalResourceId" \
-  --output text \
-  --no-cli-pager 2>/dev/null | head -n1 || echo "")
+if [ -z "$PDF_TO_HTML_BUCKET" ]; then
+  echo "Attempting to auto-detect PDF-to-HTML bucket..."
+  PDF_TO_HTML_BUCKET=$(aws cloudformation describe-stack-resources \
+    --stack-name "$STACK_NAME" \
+    --query "StackResources[?ResourceType=='AWS::S3::Bucket' && contains(PhysicalResourceId, 'pdf2html')].PhysicalResourceId" \
+    --output text \
+    --no-cli-pager 2>/dev/null | head -n1 || echo "")
+fi
 
 # Get AWS region
 AWS_REGION=$(aws configure get region || echo "us-east-1")
@@ -64,8 +74,23 @@ AWS_REGION=$(aws configure get region || echo "us-east-1")
 if [ -z "$AMPLIFY_APP_ID" ] || [ "$AMPLIFY_APP_ID" = "None" ]; then
   echo "❌ Error: Could not find AmplifyAppId in stack outputs"
   echo "Make sure the backend stack '$STACK_NAME' is deployed"
+  echo ""
+  echo "Available stacks:"
+  aws cloudformation list-stacks \
+    --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE \
+    --query 'StackSummaries[].StackName' \
+    --output table \
+    --no-cli-pager
   exit 1
 fi
+
+# Clean up Amplify App ID (remove any whitespace or special characters)
+AMPLIFY_APP_ID=$(echo "$AMPLIFY_APP_ID" | tr -d '[:space:]')
+
+echo ""
+echo "🔍 Debug: Raw Amplify App ID from CloudFormation: '$AMPLIFY_APP_ID'"
+echo "🔍 Debug: Length: ${#AMPLIFY_APP_ID}"
+echo ""
 
 echo "✅ Retrieved configuration:"
 echo "  - Amplify App ID: $AMPLIFY_APP_ID"
@@ -73,9 +98,27 @@ echo "  - Amplify URL: $REACT_APP_AMPLIFY_APP_URL"
 echo "  - User Pool ID: $REACT_APP_USER_POOL_ID"
 echo "  - User Pool Client ID: $REACT_APP_USER_POOL_CLIENT_ID"
 echo "  - Identity Pool ID: $REACT_APP_IDENTITY_POOL_ID"
-echo "  - PDF-to-PDF Bucket: ${PDF_TO_PDF_BUCKET:-Not found}"
-echo "  - PDF-to-HTML Bucket: ${PDF_TO_HTML_BUCKET:-Not found}"
+echo "  - PDF-to-PDF Bucket: ${PDF_TO_PDF_BUCKET:-Not specified}"
+echo "  - PDF-to-HTML Bucket: ${PDF_TO_HTML_BUCKET:-Not specified}"
 echo "  - AWS Region: $AWS_REGION"
+echo ""
+
+# Verify Amplify app exists
+echo "🔍 Verifying Amplify app exists..."
+AMPLIFY_CHECK=$(aws amplify get-app --app-id "$AMPLIFY_APP_ID" --query 'app.appId' --output text --no-cli-pager 2>&1 || echo "NOT_FOUND")
+
+if [ "$AMPLIFY_CHECK" = "NOT_FOUND" ] || [[ "$AMPLIFY_CHECK" == *"NotFoundException"* ]]; then
+  echo "❌ Error: Amplify app '$AMPLIFY_APP_ID' not found"
+  echo ""
+  echo "Available Amplify apps in region $AWS_REGION:"
+  aws amplify list-apps --query 'apps[].[appId,name]' --output table --no-cli-pager 2>/dev/null || echo "No apps found or error listing apps"
+  echo ""
+  echo "💡 Tip: Make sure you're in the correct AWS region"
+  echo "Current region: $AWS_REGION"
+  exit 1
+fi
+
+echo "✅ Amplify app verified"
 echo ""
 
 # --------------------------------------------------
@@ -297,6 +340,9 @@ echo "   $REACT_APP_AMPLIFY_APP_URL"
 echo ""
 echo "📱 View deployment details:"
 echo "   https://console.aws.amazon.com/amplify/home?region=$AWS_REGION#/$AMPLIFY_APP_ID"
+echo ""
+echo "💡 Usage for next deployment:"
+echo "   ./deploy-amplify-direct.sh [PDF_BUCKET] [HTML_BUCKET]"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 cd ..
