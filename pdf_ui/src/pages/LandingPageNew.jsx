@@ -126,9 +126,15 @@ const LandingPageNew = () => {
         <Container maxWidth="lg">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Stack direction="row" alignItems="center" spacing={2}>
-              <Typography variant="h6" fontWeight="700">
-                UB Libraries
-              </Typography>
+              <Box
+                component="img"
+                src="/ub-logo-two-line.png"
+                alt="University at Buffalo Libraries"
+                sx={{
+                  height: { xs: 40, sm: 50 },
+                  width: 'auto',
+                }}
+              />
               <Chip label="PDF Accessibility" size="small" sx={{ backgroundColor: '#00a69c', color: '#fff' }} />
             </Stack>
             <Button
@@ -388,9 +394,17 @@ const LandingPageNew = () => {
         <Container maxWidth="lg">
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" fontWeight="700" gutterBottom>
-                UB Libraries PDF Accessibility
-              </Typography>
+              <Box
+                component="img"
+                src="/ub-logo-two-line.png"
+                alt="University at Buffalo Libraries"
+                sx={{
+                  height: 60,
+                  width: 'auto',
+                  mb: 2,
+                  filter: 'brightness(0) invert(1)', // Makes logo white
+                }}
+              />
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 Powered by AWS and built for academic excellence. Making digital content accessible to all.
               </Typography>
