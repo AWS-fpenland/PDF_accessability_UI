@@ -422,8 +422,11 @@ const LandingPageNew = () => {
             </Grid>
           </Grid>
           <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', mt: 4, pt: 4, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ opacity: 0.6 }}>
-              © 2025 University at Buffalo Libraries. All rights reserved.
+            <Typography variant="body2" sx={{ opacity: 0.8, fontWeight: 600, color: '#ffc107' }}>
+              AWS Developed Demo for University at Buffalo
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.6, mt: 0.5 }}>
+              NON-PRODUCTION • FOR DEMO USE ONLY
             </Typography>
           </Box>
         </Container>
