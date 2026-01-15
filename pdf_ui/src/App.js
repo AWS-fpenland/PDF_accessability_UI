@@ -12,7 +12,7 @@ import {isMaintenanceMode} from './utilities/constants.jsx';
 import theme from './theme';
 import { UserPoolClientId, HostedUIUrl, Authority } from './utilities/constants';
 
-import LandingPage from './pages/LandingPage';
+import LandingPage from './pages/LandingPageNew';
 
 import MainApp from './MainApp';
 import CallbackPage from './pages/CallbackPage'; 
