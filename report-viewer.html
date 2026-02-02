@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Accessibility Report Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .toggle-btn {
+            padding: 8px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn:hover {
+            background: #f7fafc;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .upload-grid.single-mode {
+            grid-template-columns: 1fr;
+        }
+
+        .upload-box {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .upload-box h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #22c55e;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .clear-btn {
+            margin-top: 8px;
+            padding: 6px 15px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #dc2626;
+        }
+
+        .report-container {
+            display: none;
+        }
+
+        .report-container.visible {
+            display: block;
+        }
+
+        .comparison-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .single-view {
+            display: block;
+        }
+
+        .report-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .panel-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .panel-badge.before {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+
+        .panel-badge.after {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card h2 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .summary-description {
+            font-size: 14px;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+
+        .improvement-banner {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .improvement-banner h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .improvement-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .improvement-stat {
+            text-align: center;
+        }
+
+        .improvement-value {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .improvement-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: #2d3748;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 600;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .rule-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .rule-item.passed {
+            background: #f0fdf4;
+            border-left-color: #22c55e;
+        }
+
+        .rule-item.failed {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .rule-item.manual {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+
+        .rule-item.skipped {
+            background: #f8fafc;
+            border-left-color: #94a3b8;
+        }
+
+        .rule-item.improved {
+            background: linear-gradient(90deg, #f0fdf4 0%, #dcfce7 100%);
+            border-left-color: #22c55e;
+            border-left-width: 6px;
+        }
+
+        .rule-item.improved::after {
+            content: '↑ IMPROVED';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #22c55e;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .rule-item.degraded {
+            background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%);
+            border-left-color: #ef4444;
+            border-left-width: 6px;
+        }
+
+        .rule-item.degraded::after {
+            content: '↓ DEGRADED';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ef4444;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .status-icon.passed {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-icon.failed {
+            background: #ef4444;
+            color: white;
+        }
+
+        .status-icon.manual {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status-icon.skipped {
+            background: #94a3b8;
+            color: white;
+        }
+
+        .rule-content {
+            flex: 1;
+        }
+
+        .rule-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .rule-description {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .no-report {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .no-report-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .comparison-view {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .improvement-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .upload-section, .view-toggle {
+                display: none;
+            }
+
+            .report-panel {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .comparison-view {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 PDF Accessibility Report Viewer</h1>
+            <p>Upload JSON remediation reports to view detailed accessibility compliance results and compare before/after improvements</p>
+            <div class="view-toggle">
+                <button class="toggle-btn active" onclick="switchMode('single')">Single Report</button>
+                <button class="toggle-btn" onclick="switchMode('comparison')">Compare Reports</button>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-grid single-mode" id="uploadGrid">
+                <div class="upload-box">
+                    <h3>📄 Report</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" accept=".json" />
+                        <label for="fileInput" class="file-input-label">Choose File</label>
+                    </div>
+                    <div id="fileName" class="file-name" style="display: none;"></div>
+                    <button id="clearBtn" class="clear-btn" style="display: none;" onclick="clearFile('single')">Clear</button>
+                </div>
+            </div>
+            <div class="upload-grid" id="comparisonGrid" style="display: none;">
+                <div class="upload-box">
+                    <h3>📄 Before Remediation</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="beforeInput" accept=".json" />
+                        <label for="beforeInput" class="file-input-label">Choose File</label>
+                    </div>
+                    <div id="beforeFileName" class="file-name" style="display: none;"></div>
+                    <button id="clearBeforeBtn" class="clear-btn" style="display: none;" onclick="clearFile('before')">Clear</button>
+                </div>
+                <div class="upload-box">
+                    <h3>📄 After Remediation</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="afterInput" accept=".json" />
+                        <label for="afterInput" class="file-input-label">Choose File</label>
+                    </div>
+                    <div id="afterFileName" class="file-name" style="display: none;"></div>
+                    <button id="clearAfterBtn" class="clear-btn" style="display: none;" onclick="clearFile('after')">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-container" id="reportContainer">
+            <div class="no-report">
+                <div class="no-report-icon">📊</div>
+                <h3>No Report Loaded</h3>
+                <p>Please upload a JSON report file to view the results</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'single';
+        let beforeData = null;
+        let afterData = null;
+        let singleData = null;
+
+        // File input handlers
+        document.getElementById('fileInput').addEventListener('change', (e) => handleFileSelect(e, 'single'));
+        document.getElementById('beforeInput').addEventListener('change', (e) => handleFileSelect(e, 'before'));
+        document.getElementById('afterInput').addEventListener('change', (e) => handleFileSelect(e, 'after'));
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Toggle upload sections
+            const uploadGrid = document.getElementById('uploadGrid');
+            const comparisonGrid = document.getElementById('comparisonGrid');
+            
+            if (mode === 'single') {
+                uploadGrid.style.display = 'grid';
+                comparisonGrid.style.display = 'none';
+                if (singleData) displaySingleReport(singleData);
+                else showNoReport();
+            } else {
+                uploadGrid.style.display = 'none';
+                comparisonGrid.style.display = 'grid';
+                if (beforeData && afterData) displayComparisonReport(beforeData, afterData);
+                else showNoReport();
+            }
+        }
+
+        function handleFileSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const reportData = JSON.parse(e.target.result);
+                    
+                    if (type === 'single') {
+                        singleData = reportData;
+                        document.getElementById('fileName').textContent = `✓ ${file.name}`;
+                        document.getElementById('fileName').style.display = 'block';
+                        document.getElementById('clearBtn').style.display = 'inline-block';
+                        displaySingleReport(reportData);
+                    } else if (type === 'before') {
+                        beforeData = reportData;
+                        document.getElementById('beforeFileName').textContent = `✓ ${file.name}`;
+                        document.getElementById('beforeFileName').style.display = 'block';
+                        document.getElementById('clearBeforeBtn').style.display = 'inline-block';
+                        if (afterData) displayComparisonReport(beforeData, afterData);
+                    } else if (type === 'after') {
+                        afterData = reportData;
+                        document.getElementById('afterFileName').textContent = `✓ ${file.name}`;
+                        document.getElementById('afterFileName').style.display = 'block';
+                        document.getElementById('clearAfterBtn').style.display = 'inline-block';
+                        if (beforeData) displayComparisonReport(beforeData, afterData);
+                    }
+                } catch (error) {
+                    alert('Error parsing JSON file. Please ensure it is a valid JSON report.');
+                    console.error('Parse error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearFile(type) {
+            if (type === 'single') {
+                singleData = null;
+                document.getElementById('fileInput').value = '';
+                document.getElementById('fileName').style.display = 'none';
+                document.getElementById('clearBtn').style.display = 'none';
+                showNoReport();
+            } else if (type === 'before') {
+                beforeData = null;
+                document.getElementById('beforeInput').value = '';
+                document.getElementById('beforeFileName').style.display = 'none';
+                document.getElementById('clearBeforeBtn').style.display = 'none';
+                if (!afterData) showNoReport();
+            } else if (type === 'after') {
+                afterData = null;
+                document.getElementById('afterInput').value = '';
+                document.getElementById('afterFileName').style.display = 'none';
+                document.getElementById('clearAfterBtn').style.display = 'none';
+                if (!beforeData) showNoReport();
+            }
+        }
+
+        function showNoReport() {
+            const reportContainer = document.getElementById('reportContainer');
+            reportContainer.classList.remove('visible');
+            reportContainer.innerHTML = `
+                <div class="no-report">
+                    <div class="no-report-icon">📊</div>
+                    <h3>No Report Loaded</h3>
+                    <p>Please upload ${currentMode === 'comparison' ? 'both before and after' : 'a'} JSON report file${currentMode === 'comparison' ? 's' : ''} to view the results</p>
+                </div>
+            `;
+        }
+
+        function displaySingleReport(data) {
+            const reportContainer = document.getElementById('reportContainer');
+            reportContainer.classList.add('visible');
+            
+            const summary = data.Summary || {};
+            const detailedReport = data['Detailed Report'] || {};
+
+            let html = `<div class="single-view"><div class="report-panel">`;
+            
+            html += generateSummaryCard(summary);
+            html += generateDetailedSections(detailedReport);
+            
+            html += `</div></div>`;
+            reportContainer.innerHTML = html;
+        }
+
+        function displayComparisonReport(beforeData, afterData) {
+            const reportContainer = document.getElementById('reportContainer');
+            reportContainer.classList.add('visible');
+            
+            const beforeSummary = beforeData.Summary || {};
+            const afterSummary = afterData.Summary || {};
+            const beforeReport = beforeData['Detailed Report'] || {};
+            const afterReport = afterData['Detailed Report'] || {};
+
+            let html = '';
+            
+            // Improvement banner
+            const improvements = calculateImprovements(beforeSummary, afterSummary);
+            if (improvements.improved) {
+                html += `
+                    <div class="improvement-banner">
+                        <h3>🎉 Accessibility Improvements Detected!</h3>
+                        <div class="improvement-stats">
+                            <div class="improvement-stat">
+                                <span class="improvement-value">+${improvements.passedIncrease}</span>
+                                <span class="improvement-label">More Passed</span>
+                            </div>
+                            <div class="improvement-stat">
+                                <span class="improvement-value">-${improvements.failedDecrease}</span>
+                                <span class="improvement-label">Fewer Failed</span>
+                            </div>
+                            <div class="improvement-stat">
+                                <span class="improvement-value">${improvements.successRate}%</span>
+                                <span class="improvement-label">Success Rate</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `<div class="comparison-view">`;
+            
+            // Before panel
+            html += `<div class="report-panel">`;
+            html += `<div class="panel-header">
+                <span class="panel-title">Before Remediation</span>
+                <span class="panel-badge before">BEFORE</span>
+            </div>`;
+            html += generateSummaryCard(beforeSummary);
+            html += generateDetailedSections(beforeReport);
+            html += `</div>`;
+            
+            // After panel
+            html += `<div class="report-panel">`;
+            html += `<div class="panel-header">
+                <span class="panel-title">After Remediation</span>
+                <span class="panel-badge after">AFTER</span>
+            </div>`;
+            html += generateSummaryCard(afterSummary);
+            html += generateDetailedSections(afterReport, beforeReport);
+            html += `</div>`;
+            
+            html += `</div>`;
+            reportContainer.innerHTML = html;
+        }
+
+        function calculateImprovements(beforeSummary, afterSummary) {
+            const passedBefore = beforeSummary.Passed || 0;
+            const passedAfter = afterSummary.Passed || 0;
+            const failedBefore = beforeSummary.Failed || 0;
+            const failedAfter = afterSummary.Failed || 0;
+            
+            const totalBefore = passedBefore + failedBefore;
+            const totalAfter = passedAfter + failedAfter;
+            
+            return {
+                improved: passedAfter > passedBefore || failedAfter < failedBefore,
+                passedIncrease: Math.max(0, passedAfter - passedBefore),
+                failedDecrease: Math.max(0, failedBefore - failedAfter),
+                successRate: totalAfter > 0 ? Math.round((passedAfter / totalAfter) * 100) : 0
+            };
+        }
+
+        function generateSummaryCard(summary) {
+            return `
+                <div class="summary-card">
+                    <h2>Summary</h2>
+                    <div class="summary-description">${summary.Description || 'No description available'}</div>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">${summary.Passed || 0}</span>
+                            <span class="stat-label">Passed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary.Failed || 0}</span>
+                            <span class="stat-label">Failed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary['Needs manual check'] || 0}</span>
+                            <span class="stat-label">Manual Check</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary['Passed manually'] || 0}</span>
+                            <span class="stat-label">Passed Manually</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary['Failed manually'] || 0}</span>
+                            <span class="stat-label">Failed Manually</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary.Skipped || 0}</span>
+                            <span class="stat-label">Skipped</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateDetailedSections(detailedReport, beforeReport = null) {
+            let html = '';
+            
+            for (const [sectionName, rules] of Object.entries(detailedReport)) {
+                html += `<div class="section">`;
+                html += `<h3 class="section-title">${sectionName}</h3>`;
+                
+                if (Array.isArray(rules)) {
+                    rules.forEach(rule => {
+                        const status = rule.Status.toLowerCase().replace(' ', '-');
+                        const statusClass = status.includes('passed') ? 'passed' : 
+                                          status.includes('failed') ? 'failed' :
+                                          status.includes('manual') ? 'manual' : 'skipped';
+                        
+                        const icon = statusClass === 'passed' ? '✓' :
+                                   statusClass === 'failed' ? '✗' :
+                                   statusClass === 'manual' ? '!' : '−';
+
+                        // Check for improvements if comparing
+                        let improvementClass = '';
+                        if (beforeReport && beforeReport[sectionName]) {
+                            const beforeRule = beforeReport[sectionName].find(r => r.Rule === rule.Rule);
+                            if (beforeRule) {
+                                const beforeStatus = beforeRule.Status.toLowerCase();
+                                const afterStatus = rule.Status.toLowerCase();
+                                
+                                if (beforeStatus.includes('failed') && afterStatus.includes('passed')) {
+                                    improvementClass = 'improved';
+                                } else if (beforeStatus.includes('passed') && afterStatus.includes('failed')) {
+                                    improvementClass = 'degraded';
+                                }
+                            }
+                        }
+
+                        html += `
+                            <div class="rule-item ${statusClass} ${improvementClass}">
+                                <div class="status-icon ${statusClass}">${icon}</div>
+                                <div class="rule-content">
+                                    <div class="rule-name">${rule.Rule}</div>
+                                    <div class="rule-description">${rule.Description}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `</div>`;
+            }
+            
+            return html;
+        }
+    </script>
+</body>
+</html>
+            
+            const summary = data.Summary || {};
+            const detailedReport = data['Detailed Report'] || {};
+
+            let html = `
+                <div class="summary-card">
+                    <h2>Summary</h2>
+                    <div class="summary-description">${summary.Description || 'No description available'}</div>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">${summary.Passed || 0}</span>
+                            <span class="stat-label">Passed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary.Failed || 0}</span>
+                            <span class="stat-label">Failed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary['Needs manual check'] || 0}</span>
+                            <span class="stat-label">Manual Check</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary['Passed manually'] || 0}</span>
+                            <span class="stat-label">Passed Manually</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary['Failed manually'] || 0}</span>
+                            <span class="stat-label">Failed Manually</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${summary.Skipped || 0}</span>
+                            <span class="stat-label">Skipped</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render each section
+            for (const [sectionName, rules] of Object.entries(detailedReport)) {
+                html += `<div class="section">`;
+                html += `<h3 class="section-title">${sectionName}</h3>`;
+                
+                if (Array.isArray(rules)) {
+                    rules.forEach(rule => {
+                        const status = rule.Status.toLowerCase().replace(' ', '-');
+                        const statusClass = status.includes('passed') ? 'passed' : 
+                                          status.includes('failed') ? 'failed' :
+                                          status.includes('manual') ? 'manual' : 'skipped';
+                        
+                        const icon = statusClass === 'passed' ? '✓' :
+                                   statusClass === 'failed' ? '✗' :
+                                   statusClass === 'manual' ? '!' : '−';
+
+                        html += `
+                            <div class="rule-item ${statusClass}">
+                                <div class="status-icon ${statusClass}">${icon}</div>
+                                <div class="rule-content">
+                                    <div class="rule-name">${rule.Rule}</div>
+                                    <div class="rule-description">${rule.Description}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `</div>`;
+            }
+
+            reportContainer.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
