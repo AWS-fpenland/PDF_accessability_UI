@@ -276,10 +276,19 @@ function UploadSection({ onUploadComplete, awsCredentials, currentUsage, maxFile
       const keyPrefix = selectedFormat === 'html' ? 'uploads/' : 'pdf/';
 
 
+      // Extract user groups from Cognito token
+      const userGroups = auth.user?.profile?.['cognito:groups'] || [];
+      const userGroupsString = Array.isArray(userGroups) ? userGroups.join(',') : '';
+
       const params = {
         Bucket: selectedBucket,
         Key: `${keyPrefix}${uniqueFilename}`,
         Body: file,
+        Metadata: {
+          'user-sub': userSub,
+          'user-groups': userGroupsString,
+          'upload-timestamp': new Date().toISOString()
+        }
       };
 
       const command = new PutObjectCommand(params);

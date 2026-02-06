@@ -1,123 +1,99 @@
-# Technology Stack
+# Technology Stack & Conventions
 
-## Backend (PDF_Accessibility)
+## Frontend (pdf_ui/)
 
-### Infrastructure
-- **IaC**: AWS CDK (Python)
-- **Runtime**: Python 3.12
-- **Container Platform**: Docker, AWS ECS Fargate, AWS ECR
-- **Orchestration**: AWS Step Functions
-- **Compute**: AWS Lambda, ECS Tasks
-- **Storage**: Amazon S3
-- **AI/ML**: AWS Bedrock (Claude 3.5 Sonnet, Claude 3 Haiku, Nova Pro), Adobe PDF Services API
-- **Monitoring**: CloudWatch Logs, CloudWatch Dashboards
-- **Secrets**: AWS Secrets Manager
+- **React 19** with Create React App (react-scripts 5.0.1)
+- **MUI 6.3.1** (@mui/material, @mui/icons-material, @mui/lab)
+- **react-router-dom 7** — routes: `/home`, `/callback`, `/app`
+- **react-oidc-context 3** — Cognito OIDC authentication
+- **framer-motion 11** — page transitions and landing page animations
+- **pdf-lib** — client-side PDF page count validation
+- **AWS SDK v3** — S3 (upload/download), Cognito Identity (federated credentials)
+- **country-state-city** — location picker for first-sign-in dialog
 
-### Key Dependencies
-```
-aws-cdk-lib==2.147.2
-constructs>=10.0.0,<11.0.0
-```
+### Coding Conventions
 
-### Architecture Patterns
-- Event-driven processing (S3 triggers)
-- Parallel processing with Step Functions Map state
-- Containerized workloads for PDF processing
-- Multi-stage pipeline: Split → Process → Merge → Validate
+- Components are `.jsx`, one per file. No TypeScript in the frontend.
+- Utilities in `src/utilities/`, pages in `src/pages/`, components in `src/components/`
+- Environment variables: `REACT_APP_*` prefix (CRA convention), sourced from `.env.production` or Amplify env vars
+- Theme: `src/theme.jsx` using MUI `createTheme`, colors from `constants.jsx`
+- No state management library — `MainApp.js` is the state hub with prop drilling
+- Auth: `useAuth()` hook from react-oidc-context
+- AWS credentials: `CustomCredentialsProvider` class → Cognito Identity `getId` + `getCredentialsForIdentity`
 
-## Frontend (PDF_accessability_UI)
+### Styling Approach (Mixed — Historical)
 
-### UI Framework
-- **Framework**: React 19.0.0
-- **Build Tool**: react-scripts 5.0.1
-- **UI Library**: Material-UI (MUI) 6.3.1
-- **Routing**: react-router-dom 7.1.1
-- **Animation**: framer-motion 11.16.4
+The codebase has two styling patterns due to its evolution:
 
-### Backend Infrastructure
-- **IaC**: AWS CDK (TypeScript)
-- **Runtime**: Node.js with TypeScript 5.6.3
-- **Hosting**: AWS Amplify
-- **Authentication**: Amazon Cognito with react-oidc-context
-- **API**: API Gateway with Lambda backends
-- **Event Processing**: EventBridge for quota updates
+1. **CSS files** — `UploadSection.css`, `ProcessingContainer.css`, `ResultsContainer.css`. These use the `Geist` font (never loaded — falls back to system fonts) and ASU maroon `#8c1d40` for accent colors. These predate the UB branding work.
+2. **MUI `sx` prop** — Header, LeftNav, HeroSection, InformationBlurb, LandingPageNew, FirstSignInDialog. These use UB colors from `constants.jsx`.
 
-### Key Dependencies
-```json
-{
-  "aws-cdk-lib": "2.173.2",
-  "@aws-cdk/aws-amplify-alpha": "^2.173.2-alpha.0",
-  "@aws-sdk/client-s3": "^3.723.0",
-  "@aws-sdk/client-cognito-identity": "^3.723.0",
-  "react": "^19.0.0",
-  "@mui/material": "^6.3.1"
-}
-```
+New code should use MUI `sx` prop with theme colors. The CSS files are candidates for migration.
 
-## Common Commands
+### UB Color Palette (constants.jsx)
 
-### Backend Deployment (PDF_Accessibility)
+| Constant | Value | Name |
+|---|---|---|
+| `PRIMARY_MAIN` | `#005bbb` | UB Blue |
+| `SECONDARY_MAIN` | `#00a69c` | Lake LaSalle |
+| `CHAT_LEFT_PANEL_BACKGROUND` | `#002f56` | Harriman Blue |
+| `HEADER_BACKGROUND` | `#005bbb` | UB Blue |
+| `primary_50` | `#e6f0ff` | Light UB Blue |
+
+Note: CSS files still use `#8c1d40` (ASU maroon) for upload/processing/results UI. This is the main remaining branding inconsistency.
+
+## Backend Infrastructure (cdk_backend/)
+
+- **AWS CDK 2.173.2** with TypeScript 5.6
+- **@aws-cdk/aws-amplify-alpha** — Amplify app construct
+- Lambda runtime: **Python 3.12**
+- API Gateway REST API with Cognito authorizer
+- EventBridge → CloudTrail for group membership change events
+
+### Lambda Functions
+
+| Function | Purpose | Trigger |
+|---|---|---|
+| `postConfirmation` | Init user attributes + assign group on signup | Cognito PostConfirmation |
+| `updateAttributes` | Update profile on first sign-in | API Gateway POST |
+| `checkOrIncrementQuota` | Check or increment upload quota | API Gateway POST |
+| `UpdateAttributesGroups` | Sync limits on group membership change | EventBridge |
+
+## Build & Deploy
+
+### UB-Specific Deployment (this branch)
+
 ```bash
-# One-click deployment
-chmod +x deploy.sh
+# Direct deploy (recommended) — builds locally, pushes to Amplify
+./deploy-amplify-direct.sh [PDF_BUCKET] [HTML_BUCKET]
+
+# UB frontend via CodeBuild — deploys fpenland/demo/UB branch
+./deploy-frontend-ub.sh <PROJECT_NAME> <PDF_BUCKET> <HTML_BUCKET> <ROLE_ARN>
+
+# Full stack (backend CDK + frontend)
 ./deploy.sh
-
-# Manual CDK deployment
-cdk bootstrap  # First time only
-cdk synth
-cdk deploy
-
-# Redeploy via CodeBuild
-aws codebuild start-build --project-name YOUR-PROJECT-NAME --source-version main
 ```
 
-### Frontend Deployment (PDF_accessability_UI)
+### Local Development
+
 ```bash
-# One-click deployment (includes backend)
-chmod +x deploy.sh
-./deploy.sh
-
-# Frontend only deployment
-chmod +x deploy-frontend.sh
-./deploy-frontend.sh
-
-# Local development
-cd pdf_ui
-npm install
-npm start  # Runs on http://localhost:3000
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
+cd pdf_ui && npm install && npm start  # port 3000
+# Requires .env with all REACT_APP_* vars
+# Commented-out localhost redirect URIs in App.js
 ```
 
-### Backend CDK (TypeScript)
+### CDK Backend
+
 ```bash
-cd cdk_backend
-npm install
-npm run build    # Compile TypeScript
-npm run watch    # Watch mode
-npm test         # Run tests
-npm run cdk      # CDK commands
+cd cdk_backend && npm install && npm run build
+npx cdk deploy -c PDF_TO_PDF_BUCKET=<name> -c PDF_TO_HTML_BUCKET=<name>
 ```
-
-## Build Systems
-
-- **Python Backend**: CDK with Docker image builds for Lambda and ECS
-- **TypeScript Backend**: CDK with npm/tsc compilation
-- **React Frontend**: Create React App (react-scripts) with npm
 
 ## Testing
 
-- **Frontend**: Jest with React Testing Library
-- **Backend CDK**: Jest with ts-jest
-
-## Platform Requirements
-
-- AWS Account with appropriate IAM permissions
-- AWS CloudShell or AWS CLI configured locally
-- Docker (for local builds and PDF-to-HTML solution)
-- Node.js and npm (for frontend and TypeScript CDK)
-- Python 3.12+ (for Python CDK)
+- Jest + React Testing Library. Minimal coverage:
+  - `App.test.js` — smoke test
+  - `UploadSection.test.jsx` — upload component tests
+  - `UploadSection.metadata.test.js` — metadata tests
+- CDK: single placeholder test
+- No E2E tests
