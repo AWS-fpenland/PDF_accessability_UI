@@ -1,146 +1,125 @@
-# Deployment Quick Start
+# Full Stack Local Deployment - Quick Start
 
-## 🚀 Three Ways to Deploy Your UB Demo
+## What's New
 
-### Option 1: Direct Deploy (Fastest for Testing) ⚡
+A new deployment script `deploy-full-stack-local.sh` that deploys both the CDK backend and React frontend entirely from your local repository, without requiring GitHub integration or CodeBuild.
 
-**Best for**: Quick testing, local changes, no GitHub push needed
+## Why Use This?
+
+- **Faster Development**: No need to push to GitHub for every test
+- **Local Control**: Full visibility into the deployment process
+- **Private Development**: Work on private branches or forks
+- **Cost Effective**: No CodeBuild charges
+
+## Quick Start
 
 ```bash
-# With bucket names (recommended)
-./deploy-amplify-direct.sh pdfaccessibility-bucket-name pdf2html-bucket-name
+# Clone the repository
+git clone https://github.com/ASUCICREPO/PDF_accessability_UI.git
+cd PDF_accessability_UI
 
-# Or let it auto-detect (may not work)
-./deploy-amplify-direct.sh
+# Run the deployment script
+./deploy-full-stack-local.sh
+
+# Or with bucket arguments
+./deploy-full-stack-local.sh pdfaccessibility-bucket-abc123 pdf2html-bucket-xyz789
 ```
 
-**Find your bucket names:**
+## What It Does
+
+1. ✅ Validates prerequisites (Node.js, npm, AWS CLI, jq)
+2. ✅ Deploys CDK backend infrastructure (Cognito, Lambda, API Gateway, Amplify)
+3. ✅ Retrieves CloudFormation outputs
+4. ✅ Generates `.env.production` with all configuration
+5. ✅ Builds React application locally
+6. ✅ Creates deployment package
+7. ✅ Deploys directly to Amplify
+8. ✅ Monitors deployment status
+
+## Deployment Time
+
+- **First deployment**: 10-15 minutes
+- **Subsequent deployments**: 5-8 minutes
+
+## Prerequisites
+
+- Node.js 18+ and npm
+- AWS CLI v2 configured with credentials
+- jq (JSON processor)
+- Backend S3 bucket(s) from PDF_Accessibility deployment
+
+## Documentation
+
+- **Full Guide**: [docs/FULL_STACK_LOCAL_DEPLOYMENT.md](docs/FULL_STACK_LOCAL_DEPLOYMENT.md)
+- **Comparison**: [docs/DEPLOYMENT_COMPARISON.md](docs/DEPLOYMENT_COMPARISON.md)
+- **Main README**: [README.md](README.md)
+
+## Comparison with Other Methods
+
+| Method | Backend | Frontend | GitHub | Use Case |
+|--------|---------|----------|--------|----------|
+| **deploy-full-stack-local.sh** | ✅ Local CDK | ✅ Local build | ❌ No | **Development** |
+| deploy.sh | ✅ CodeBuild | ✅ CodeBuild | ✅ Yes | Production |
+| deploy-amplify-direct.sh | ❌ No | ✅ Local build | ❌ No | Frontend updates |
+
+## Example Workflow
+
 ```bash
-aws s3 ls | grep -E 'pdfaccessibility|pdf2html'
+# 1. Create feature branch
+git checkout -b feature/my-feature
+
+# 2. Make changes
+# ... edit files ...
+
+# 3. Test locally
+./deploy-full-stack-local.sh pdfaccessibility-bucket-abc123 pdf2html-bucket-xyz789
+
+# 4. Verify in browser
+# ... test functionality ...
+
+# 5. Iterate quickly
+# ... make more changes ...
+./deploy-full-stack-local.sh pdfaccessibility-bucket-abc123 pdf2html-bucket-xyz789
+
+# 6. Commit when ready
+git add .
+git commit -m "feat: my feature"
+git push origin feature/my-feature
 ```
 
-**Troubleshooting:**
-- If you get "App not found" error, check your AWS region matches where Amplify was deployed
-- List Amplify apps: `aws amplify list-apps`
-- Check region: `aws configure get region`
+## Troubleshooting
 
----
-
-### Option 2: Deploy UB Branch via CodeBuild
-
-**Best for**: Production deployments, CI/CD workflow
+### CDK Bootstrap Error
 
 ```bash
-# First, push your branch
-git push origin fpenland/demo/UB
-
-# Then deploy
-chmod +x deploy-frontend-ub.sh
-./deploy-frontend-ub.sh <PROJECT_NAME> <PDF_BUCKET> <HTML_BUCKET> <ROLE_ARN>
-```
-
-**Get your parameters:**
-```bash
-# Get CloudFormation outputs
-aws cloudformation describe-stacks \
-  --stack-name CdkBackendStack \
-  --query 'Stacks[0].Outputs' \
-  --output table
-
-# Get CodeBuild role ARN
-aws iam list-roles \
-  --query 'Roles[?contains(RoleName, `CodeBuild`)].Arn' \
-  --output text
-```
-
----
-
-### Option 3: Deploy Main Branch (Original)
-
-**Best for**: Deploying the original non-UB version
-
-```bash
-./deploy-frontend.sh <PROJECT_NAME> <PDF_BUCKET> <HTML_BUCKET> <ROLE_ARN>
-```
-
----
-
-## 🧪 Test Locally First
-
-Always test before deploying:
-
-```bash
-cd pdf_ui
-npm install
-npm start
-```
-
-Visit http://localhost:3000 to preview your changes.
-
----
-
-## 🔍 Common Issues
-
-### "App not found" Error
-
-**Problem**: Amplify app ID doesn't exist or wrong region
-
-**Fix**:
-1. Check your region: `aws configure get region`
-2. List apps: `aws amplify list-apps`
-3. Verify backend is deployed: `aws cloudformation describe-stacks --stack-name CdkBackendStack`
-
-### Can't Find Bucket Names
-
-**Problem**: Auto-detection failed
-
-**Fix**: Specify them manually as parameters
-```bash
-# List all S3 buckets
-aws s3 ls
-
-# Or search for specific ones
-aws s3 ls | grep pdf
-```
-
-### Build Fails
-
-**Problem**: Dependencies or build errors
-
-**Fix**:
-```bash
-cd pdf_ui
-rm -rf node_modules package-lock.json
-npm install
-npm run build
+cd cdk_backend
+npx cdk bootstrap
 cd ..
+./deploy-full-stack-local.sh
 ```
 
+### Node Version Error
+
+```bash
+node --version  # Should be v18+
+nvm install 18  # If using nvm
+nvm use 18
+```
+
+### AWS Credentials Error
+
+```bash
+aws sts get-caller-identity  # Verify credentials
+aws configure  # If needed
+```
+
+## Support
+
+- Check [docs/FULL_STACK_LOCAL_DEPLOYMENT.md](docs/FULL_STACK_LOCAL_DEPLOYMENT.md) for detailed troubleshooting
+- Review CloudWatch logs for Lambda errors
+- Check CloudFormation console for infrastructure issues
+- See Amplify console for frontend deployment logs
+
 ---
 
-## 📊 Comparison
-
-| Method | Speed | GitHub Push | Cost | Use Case |
-|--------|-------|-------------|------|----------|
-| Direct Deploy | ⚡ Fast | ❌ No | Free | Testing |
-| CodeBuild (UB) | Medium | ✅ Yes | $ | Production |
-| CodeBuild (Main) | Medium | ✅ Yes | $ | Original |
-
----
-
-## 💡 Recommended Workflow
-
-1. **Develop**: Make changes locally
-2. **Test**: Run `npm start` to preview
-3. **Quick Deploy**: Use `deploy-amplify-direct.sh` for rapid testing
-4. **Commit**: When satisfied, commit your changes
-5. **Push**: `git push origin fpenland/demo/UB`
-6. **Production Deploy**: Use `deploy-frontend-ub.sh` for final deployment
-
----
-
-## 📚 Full Documentation
-
-- **Direct Deploy**: `docs/DIRECT_AMPLIFY_DEPLOYMENT.md`
-- **Branch Deploy**: `docs/DEPLOY_LOCAL_BRANCH.md`
-- **UB Demo Info**: `UB_DEMO_README.md`
+**Happy deploying! 🚀**
