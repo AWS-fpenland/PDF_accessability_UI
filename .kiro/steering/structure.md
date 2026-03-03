@@ -78,6 +78,7 @@ PDF_accessability_UI/                    # Branch: fpenland/demo/UB
 │   ├── MODERN_REDESIGN.md               # LandingPageNew design spec
 │   ├── DEPLOYMENT_CHECKLIST.md          # Step-by-step deploy + verify
 │   ├── DIRECT_AMPLIFY_DEPLOYMENT.md     # deploy-amplify-direct.sh guide
+│   ├── FULL_STACK_LOCAL_DEPLOYMENT.md   # deploy-full-stack-local.sh guide
 │   ├── DEPLOY_LOCAL_BRANCH.md           # Branch deployment guide
 │   ├── LOCAL_TESTING.md                 # Local dev setup
 │   └── IAM_PERMISSIONS.md               # Required AWS permissions
@@ -85,7 +86,8 @@ PDF_accessability_UI/                    # Branch: fpenland/demo/UB
 ├── deploy.sh                            # Full stack (backend + frontend via CodeBuild)
 ├── deploy-frontend.sh                   # Frontend via CodeBuild (main branch)
 ├── deploy-frontend-ub.sh               # Frontend via CodeBuild (fpenland/demo/UB branch)
-├── deploy-amplify-direct.sh            # Direct local build → Amplify deploy
+├── deploy-amplify-direct.sh            # Direct local build → Amplify deploy (frontend only)
+├── deploy-full-stack-local.sh          # Full stack local (backend CDK + frontend direct)
 ├── UB_DEMO_README.md                    # UB demo overview
 ├── DEPLOYMENT_QUICK_START.md            # Quick start guide
 ├── report-viewer.html                   # Standalone accessibility report viewer
