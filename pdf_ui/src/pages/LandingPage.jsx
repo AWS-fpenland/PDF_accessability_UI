@@ -25,7 +25,7 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import CloseIcon from '@mui/icons-material/Close';
 
 // Images
-import ubLogo from '../assets/ub-logo.svg';
+import asuLogo from '../assets/ASU_CIC_LOGO_WHITE.png';
 import gradientImg from '../assets/Gradient.svg';
 import awsLogo from '../assets/POWERED_BY_AWS.png';
 import bottomGradient from '../assets/bottom_gradient.svg';
@@ -34,20 +34,20 @@ import bottomGradient from '../assets/bottom_gradient.svg';
 import { styled } from '@mui/system';
 
 const StyledLink = styled(Link)(({ theme }) => ({
-  color: '#005bbb',
+  color: '#8c1d40',
   textDecoration: 'underline',
   component: 'a',
   '&:hover': {
-    color: '#002f56',
+    color: '#660000',
   },
 }));
 
 const StyledEmailLink = styled(Link)(({ theme }) => ({
-  color: '#005bbb',
+  color: '#8c1d40',
   textDecoration: 'none',
   component: 'a',
   '&:hover': {
-    color: '#002f56',
+    color: '#660000',
     textDecoration: 'underline',
   },
 }));
@@ -128,7 +128,7 @@ const LandingPage = () => {
       {/* Top UB Blue Bar */}
       <Box
         sx={{
-          backgroundColor: '#005bbb',
+          backgroundColor: '#8c1d40',
           height: '36px',
           width: '100%',
           display: 'flex',
@@ -157,7 +157,7 @@ const LandingPage = () => {
         sx={{
           display: 'flex',
           flexDirection: 'row',
-          backgroundColor: '#005bbb',
+          backgroundColor: '#8c1d40',
           color: '#fff',
           minHeight: '65vh',
           alignItems: 'center',
@@ -201,7 +201,7 @@ const LandingPage = () => {
           </Typography>
           <Typography variant="body1" component="h3" paragraph>
             To test out this open‐source solution,{' '}
-            <Box component="span" sx={{ color: '#00a69c', fontWeight: 'bold' }}>
+            <Box component="span" sx={{ color: '#ffc627', fontWeight: 'bold' }}>
               click the button to the right
             </Box>{' '}
             to create an account, upload your document, and receive your
@@ -221,9 +221,9 @@ const LandingPage = () => {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <img
-                src={ubLogo}
-                alt="University at Buffalo Logo"
-                style={{ height: 60, width: 'auto', marginRight: '16px', backgroundColor: '#fff', padding: '8px', borderRadius: '4px' }}
+                src={asuLogo}
+                alt="Arizona State University AI CIC Logo"
+                style={{ height: 60, width: 'auto', marginRight: '16px' }}
               />
               <img
                 src={awsLogo}
@@ -253,7 +253,7 @@ const LandingPage = () => {
               component="h2"
               sx={{
                 mb: 4,
-                color: '#00a69c',
+                color: '#ffc627',
                 textAlign: 'center',
                 fontWeight: 'bold',
               }}
@@ -274,7 +274,7 @@ const LandingPage = () => {
                 />
               }
               sx={{
-                backgroundColor: '#00a69c',
+                backgroundColor: '#ffc627',
                 color: '#000',
                 fontWeight: 'bold',
                 fontSize: '1.2rem',
@@ -292,7 +292,7 @@ const LandingPage = () => {
                   transform: 'scale(1.05)',
                 },
                 '&.MuiLoadingButton-loading': {
-                  backgroundColor: '#00a69c',
+                  backgroundColor: '#ffc627',
                 },
               }}
             >
@@ -320,7 +320,7 @@ const LandingPage = () => {
       <Box
         sx={{
           height: '5px',
-          backgroundColor: '#005bbb',
+          backgroundColor: '#8c1d40',
         }}
       />
 

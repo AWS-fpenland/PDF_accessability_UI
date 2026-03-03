@@ -69,7 +69,7 @@ const LeftNav = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => 
         {/* Header - Hidden when collapsed on desktop, always shown on mobile */}
         {(!isCollapsed || isMobile) && (
           <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ marginTop: 4 }}>
-            UB PDF Accessibility
+            PDF Accessibility
           </Typography>
         )}
 
@@ -135,7 +135,7 @@ const LeftNav = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => 
             </Box>
             <Divider sx={{ marginBottom: 2 }} />
             <Typography variant="body2" gutterBottom>
-              This solution is available for University at Buffalo and can be customized for your department's needs.
+              This solution is available through Arizona State University and can be customized for your organization's needs.
               For more information about the underlying technology:
             </Typography>
             <Typography variant="body2" gutterBottom>
@@ -144,7 +144,7 @@ const LeftNav = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => 
               </Link>
             </Typography>
             <Typography variant="body2" gutterBottom>
-              Have questions or need support? Contact UB IT Services or email: <strong>ub-accessibility@buffalo.edu</strong>
+              Have questions or need support? Contact: <strong>ai-cic@asu.edu</strong>
             </Typography>
           </CardContent>
         </Card>

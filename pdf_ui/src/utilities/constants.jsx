@@ -1,10 +1,9 @@
-// University at Buffalo Brand Colors
-// Based on UB Brand Guidelines: https://buffalo.edu/brand/creative/color/color-palette.html
-export const PRIMARY_MAIN = '#005bbb';  // UB Blue (PMS 2935)
-export const SECONDARY_MAIN = '#00a69c';  // Lake LaSalle (accent color)
-export const CHAT_LEFT_PANEL_BACKGROUND = '#002f56';  // Harriman Blue (darker UB blue)
-export const HEADER_BACKGROUND = '#005bbb';  // UB Blue
-export const primary_50 = '#e6f0ff';  // Lighter shade of UB Blue
+// Arizona State University Brand Colors
+export const PRIMARY_MAIN = '#8c1d40';  // ASU Maroon
+export const SECONDARY_MAIN = '#ffc627';  // ASU Gold
+export const CHAT_LEFT_PANEL_BACKGROUND = '#8c1d40';  // ASU Maroon
+export const HEADER_BACKGROUND = '#8c1d40';  // ASU Maroon
+export const primary_50 = '#f5e6ea';  // Lighter shade of ASU Maroon
 
 export const isMaintenanceMode = process.env.REACT_APP_MAINTENANCE_MODE === 'true';
 
