@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+cdk.out/
+.cdk.staging/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+
+# TypeScript build artifacts (cdk_backend)
+cdk_backend/*.js
+cdk_backend/*.d.ts
+!cdk_backend/jest.config.js
+
+# Python
+__pycache__/
+*.pyc
+
+# Temporary files
+*.tmp
+*.bak
