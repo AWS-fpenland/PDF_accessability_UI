@@ -82,7 +82,11 @@ export class CdkBackendStack extends cdk.Stack {
       status: amplify.RedirectStatus.REWRITE
     }));
 
-    const domainPrefix = `pdf-ui-auth${Math.random().toString(36).substring(2, 8)}`; // must be globally unique in that region
+    // Domain prefix must be globally unique per region. Using a deterministic
+    // value derived from the stack name so it stays stable across deploys.
+    // Override with CDK context: -c DOMAIN_PREFIX=my-custom-prefix
+    const domainPrefix = this.node.tryGetContext('DOMAIN_PREFIX')
+      || `pdf-ui-auth-${cdk.Names.uniqueId(this).slice(-8).toLowerCase()}`;
     const Default_Group = 'DefaultUsers';
     const Amazon_Group = 'AmazonUsers';
     const Admin_Group = 'AdminUsers';
@@ -270,6 +274,8 @@ export class CdkBackendStack extends cdk.Stack {
       });
 
     // Domain prefix is defined above with appUrl
+    // Using L1 CfnUserPoolDomain because managedLoginVersion L2 support
+    // requires aws-cdk-lib >= 2.178.0 (ManagedLoginVersion enum).
     const userPoolDomain = new cognito.CfnUserPoolDomain(this, 'PDF-Accessability-User-Pool-Domain', {
       domain: domainPrefix,
       userPoolId: userPool.userPoolId,
