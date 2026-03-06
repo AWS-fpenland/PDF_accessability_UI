@@ -194,7 +194,7 @@ export class CdkBackendStack extends cdk.Stack {
     // ------------------- Cognito: User Pool, Domain, Client -------------------
     const userPool = new cognito.UserPool(this, 'PDF-Accessability-User-Pool', {
       userPoolName: 'PDF-Accessability-User-Pool',
-      selfSignUpEnabled: false,
+      selfSignUpEnabled: true,
       signInAliases: { email: true },
 
       autoVerify: { email: true },
