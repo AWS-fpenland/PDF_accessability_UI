@@ -83,11 +83,11 @@ export class CdkBackendStack extends cdk.Stack {
       status: amplify.RedirectStatus.REWRITE
     }));
 
-    // Domain prefix must be globally unique per region. Using a deterministic
-    // value derived from the stack name so it stays stable across deploys.
+    // Domain prefix must be globally unique per region. Using the AWS account
+    // ID so it's stable across deploys but unique across accounts.
     // Override with CDK context: -c DOMAIN_PREFIX=my-custom-prefix
     const domainPrefix = this.node.tryGetContext('DOMAIN_PREFIX')
-      || `pdf-ui-auth-${cdk.Names.uniqueId(this).slice(-8).toLowerCase()}`;
+      || `pdf-ui-auth-${this.account}`;
     const Default_Group = 'DefaultUsers';
     const Amazon_Group = 'AmazonUsers';
     const Admin_Group = 'AdminUsers';
