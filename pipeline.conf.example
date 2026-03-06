@@ -18,3 +18,7 @@ CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789012:connection/your-co
 # At least one bucket is required — these come from the PDF_Accessibility backend deployment
 PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789012-us-east-1
 PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789012-us-east-1
+
+# Self-service user registration: true or false (default: false)
+# When false, only admins can create user accounts
+SELF_SIGNUP=false

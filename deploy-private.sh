@@ -63,6 +63,7 @@ Environment Variables (non-interactive mode):
   CONNECTION_ARN            CodeConnections ARN (required for non-CodeCommit)
   PDF_TO_PDF_BUCKET         S3 bucket for PDF-to-PDF backend (at least one bucket required)
   PDF_TO_HTML_BUCKET        S3 bucket for PDF-to-HTML backend (at least one bucket required)
+  SELF_SIGNUP               Enable self-service user registration: true or false (default: false)
 
 Config File Format:
   PRIVATE_REPO_URL=https://github.com/myorg/my-fork.git
@@ -71,6 +72,7 @@ Config File Format:
   CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789:connection/abc-123
   PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789-us-east-1
   PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789-us-east-1
+  SELF_SIGNUP=false
 EOF
 }
 
@@ -166,6 +168,22 @@ collect_parameters() {
     print_error "At least one S3 bucket name is required (PDF_TO_PDF_BUCKET or PDF_TO_HTML_BUCKET)"
     exit 1
   fi
+
+  # Self-service signup toggle
+  if [[ -z "${SELF_SIGNUP:-}" ]]; then
+    if [[ "$NON_INTERACTIVE" == "true" ]]; then
+      SELF_SIGNUP="false"
+    else
+      echo ""
+      local signup_choice
+      read -rp "Enable self-service user signup? (y/N): " signup_choice
+      case "${signup_choice}" in
+        [Yy]*) SELF_SIGNUP="true" ;;
+        *)     SELF_SIGNUP="false" ;;
+      esac
+    fi
+  fi
+  print_status "Self-service signup: $SELF_SIGNUP"
 }
 
 # ---------------------------------------------------------------------------
@@ -924,6 +942,7 @@ main() {
 
   add_env "PDF_TO_PDF_BUCKET" "${PDF_TO_PDF_BUCKET:-}"
   add_env "PDF_TO_HTML_BUCKET" "${PDF_TO_HTML_BUCKET:-}"
+  add_env "SELF_SIGNUP" "${SELF_SIGNUP:-false}"
   backend_env_vars+="]"
 
   local backend_project="${PROJECT_NAME}-backend"
