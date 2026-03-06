@@ -39,14 +39,15 @@ The application features user authentication, quota management, real-time proces
 
 ## Table of Contents
 
-| Index                                                             | Description                      |
-| ----------------------------------------------------------------- | -------------------------------- |
-| [Prerequisites](#prerequisites)                                   | Requirements before deployment   |
-| [Automated One-Click Deployment](#automated-one-click-deployment) | How to deploy the UI             |
-| [Using the Application](#using-the-application)                   | User guide for the web interface |
-| [Infrastructure Components](#infrastructure-components)           | AWS resources created            |
-| [Monitoring](#monitoring)                                         | System monitoring and logs       |
-| [Contributing](#contributing)                                     | How to contribute to the project |
+| Index | Description |
+|---|---|
+| [Prerequisites](#prerequisites) | Requirements before deployment |
+| [Option A: Deploy from Public Repository](#option-a-deploy-from-public-repository) | Quick deploy from the upstream GitHub repo |
+| [Option B: Deploy from Private Repository](#option-b-deploy-from-private-repository) | Deploy from a fork or private repo with CI/CD |
+| [Using the Application](#using-the-application) | User guide for the web interface |
+| [Infrastructure Components](#infrastructure-components) | AWS resources created |
+| [Monitoring](#monitoring) | System monitoring and logs |
+| [Contributing](#contributing) | How to contribute to the project |
 
 ## Prerequisites
 
@@ -62,12 +63,10 @@ After deploying the backend, you'll need the **S3 bucket name(s)** created durin
 ### System Requirements
 
 1. **AWS Account** with appropriate permissions
-
    - Amplify, Cognito, Lambda, API Gateway, S3, IAM, CloudFormation
    - See [IAM Permissions Guide](docs/IAM_PERMISSIONS.md) for detailed requirements
 
 2. **AWS CloudShell access** (recommended) or AWS CLI configured locally
-
    - Sign in to the AWS Management Console
    - Click the CloudShell icon in the top navigation bar
    - Wait for CloudShell to initialize
@@ -77,121 +76,235 @@ After deploying the backend, you'll need the **S3 bucket name(s)** created durin
    - PDF-to-HTML bucket name (starts with `pdf2html-bucket-`)
    - At least one bucket name is required
 
-## Automated One-Click Deployment
+---
 
-### Step 1: Open AWS CloudShell and Clone the Repository
+## Option A: Deploy from Public Repository
+
+Use this option when you want to deploy directly from the upstream public GitHub repository. This is the simplest path — no fork required, no source connection to configure. Good for evaluations, demos, or deployments where you don't need to customize the code.
+
+### Step 1: Clone and Run
 
 ```bash
 git clone https://github.com/ASUCICREPO/PDF_accessability_UI.git
 cd PDF_accessability_UI
-```
-
-### Step 2: Run the Deployment Script
-
-```bash
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### Step 3: Follow the Interactive Prompts
+### Step 2: Follow the Interactive Prompts
 
 The script will guide you through:
 
-1. **Bucket Configuration**: Enter your backend S3 bucket names
-
-   - PDF-to-PDF bucket name (or leave empty if not using)
-   - PDF-to-HTML bucket name (or leave empty if not using)
-   - At least one bucket is required
-
-2. **User Registration**: Choose whether to enable self-service signup
-
+1. **Bucket Configuration** — enter your backend S3 bucket names (at least one required)
+2. **User Registration** — choose whether to enable self-service signup
    - **Yes** — anyone can create an account via the sign-up page
    - **No** (default) — only administrators can create user accounts through the Cognito console
-
-3. **Automated Deployment**: The script will:
-
-   - Create IAM roles with necessary permissions
-   - Deploy backend infrastructure (Cognito, Lambda, API Gateway)
+3. **Automated Deployment** — the script will:
+   - Create IAM roles with scoped permissions
+   - Deploy backend infrastructure (Cognito, Lambda, API Gateway) via CDK
    - Build and deploy the React frontend to Amplify
    - Configure all integrations automatically
-   - Set up webhooks for automatic builds on push and PR merge (GitHub, Bitbucket, GitLab only)
 
-3. **Deployment Progress**: Monitor real-time deployment status
-   - Backend deployment: ~3-5 minutes
-   - Frontend deployment: ~5-10 minutes
+### Step 3: Access Your Application
 
-### Automatic Build Triggers (Webhooks)
-
-After deployment, the script automatically configures CodeBuild webhooks so that future changes trigger builds without manual intervention:
-
-- **Backend project** — triggers on pushes or PR merges that touch `cdk_backend/`, `buildspec.yml`, or `lambda/`
-- **Frontend project** — triggers on pushes or PR merges that touch `pdf_ui/` or `buildspec-frontend.yml`
-
-Webhooks are supported for GitHub, Bitbucket, and GitLab. CodeCommit does not support CodeBuild webhooks and is skipped automatically.
-
-### Step 4: Access Your Application
-
-After successful deployment, the script will display:
+After successful deployment (~8–15 minutes), the script displays:
 
 ```
 ✅ Frontend deployment completed successfully!
 🌐 Frontend URL: https://main.{app-id}.amplifyapp.com
 ```
 
-Visit the URL to access your PDF Accessibility UI!
+> **Note:** The public deploy script does not configure webhooks. Each deployment is a one-time build. To redeploy after code changes, re-run `./deploy.sh`.
+
+---
+
+## Option B: Deploy from Private Repository
+
+Use this option when you have forked the repository into your own GitHub, Bitbucket, or GitLab account and want:
+
+- **Automatic CI/CD** — pushes and PR merges to your target branch trigger builds automatically
+- **File-scoped triggers** — backend and frontend builds only run when their respective files change
+- **Non-interactive mode** — support for config files and environment variables for scripted/automated deployments
+- **Private source control** — your fork can be private; authentication is handled via AWS CodeConnections
+
+This is the recommended path for teams customizing the solution or running it in production.
+
+### Prerequisites (in addition to the common prerequisites above)
+
+- A fork of this repository in GitHub, Bitbucket, or GitLab
+- An **AWS CodeConnections** connection to your source provider (not needed for CodeCommit)
+  - Create one in the AWS Console under Developer Tools → Settings → Connections
+  - The connection must be in `AVAILABLE` status
+
+### Step 1: Clone Your Fork and Run
+
+```bash
+git clone https://github.com/your-org/PDF_accessability_UI.git
+cd PDF_accessability_UI
+chmod +x deploy-private.sh
+./deploy-private.sh
+```
+
+### Step 2: Follow the Interactive Prompts
+
+The script will ask for:
+
+1. **Repository URL** — your fork's HTTPS clone URL
+2. **Source Provider** — `github`, `bitbucket`, `gitlab`, or `codecommit`
+3. **Target Branch** — the branch to build from (default: `main`)
+4. **Connection ARN** — your AWS CodeConnections ARN (not required for CodeCommit)
+5. **Bucket Configuration** — backend S3 bucket names (at least one required)
+6. **User Registration** — enable or disable self-service signup (default: disabled)
+
+### Non-Interactive Mode
+
+For automated or scripted deployments, use a config file or environment variables:
+
+**Using a config file:**
+
+```bash
+./deploy-private.sh --non-interactive --config pipeline.conf
+```
+
+Example `pipeline.conf`:
+
+```
+PRIVATE_REPO_URL=https://github.com/your-org/PDF_accessability_UI.git
+SOURCE_PROVIDER=github
+TARGET_BRANCH=main
+CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789:connection/abc-123
+PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789-us-east-1
+PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789-us-east-1
+SELF_SIGNUP=false
+```
+
+**Using environment variables:**
+
+```bash
+export PRIVATE_REPO_URL=https://github.com/your-org/PDF_accessability_UI.git
+export SOURCE_PROVIDER=github
+export TARGET_BRANCH=main
+export CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789:connection/abc-123
+export PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789-us-east-1
+export PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789-us-east-1
+export SELF_SIGNUP=false
+
+./deploy-private.sh --non-interactive
+```
+
+### CLI Options
+
+| Option | Description |
+|---|---|
+| `--config <path>` | Path to a key-value config file |
+| `--non-interactive` | Fail with error instead of prompting (for CI/CD) |
+| `--buildspec <path>` | Custom backend buildspec (default: `buildspec.yml`) |
+| `--project-name <name>` | Custom CodeBuild project name prefix |
+| `--profile <name>` | AWS CLI named profile to use |
+| `--cleanup` | List and delete all `pdf-ui-*` pipeline resources |
+| `--help` | Show help message |
+
+### Automatic Build Triggers (Webhooks)
+
+After the initial deployment, the script configures CodeBuild webhooks so that future code changes trigger builds automatically. Two separate CodeBuild projects are created with file-path-scoped triggers:
+
+**Backend project** (`pdf-ui-xxxxx-backend`) triggers when any of these paths change:
+- `cdk_backend/` — CDK stack and TypeScript infrastructure code
+- `buildspec.yml` — backend build configuration
+- `lambda/` — Lambda function source code
+
+**Frontend project** (`pdf-ui-xxxxx-frontend`) triggers when any of these paths change:
+- `pdf_ui/` — React application source code
+- `buildspec-frontend.yml` — frontend build configuration
+
+Each project has two webhook event types:
+- **PUSH** to the target branch — direct pushes
+- **MERGED** into the target branch — pull request merges
+
+This means a commit that only changes React components won't trigger a CDK deployment, and a commit that only changes Lambda code won't trigger a frontend rebuild.
+
+> **Note:** Webhooks are supported for GitHub, Bitbucket, and GitLab. CodeCommit does not support CodeBuild webhooks — builds must be triggered manually or via a separate EventBridge/CodePipeline setup.
+
+### Manual Webhook Configuration
+
+If you need to configure webhooks manually in the AWS Console (CodeBuild → Build projects → your project → Edit → Source → Webhook):
+
+**Backend project — Event type 1:** select `PUSH`
+
+| Condition | Type | Pattern (regex) |
+|---|---|---|
+| Start build | HEAD_REF | `^refs/heads/main$` |
+| Start build | FILE_PATH | `^cdk_backend/\|^buildspec\.yml$\|^lambda/` |
+
+**Backend project — Event type 2:** click "Add webhook event", select `MERGED`
+
+| Condition | Type | Pattern (regex) |
+|---|---|---|
+| Start build | BASE_REF | `^refs/heads/main$` |
+| Start build | FILE_PATH | `^cdk_backend/\|^buildspec\.yml$\|^lambda/` |
+
+**Frontend project — Event type 1:** select `PUSH`
+
+| Condition | Type | Pattern (regex) |
+|---|---|---|
+| Start build | HEAD_REF | `^refs/heads/main$` |
+| Start build | FILE_PATH | `^pdf_ui/\|^buildspec-frontend\.yml$` |
+
+**Frontend project — Event type 2:** click "Add webhook event", select `MERGED`
+
+| Condition | Type | Pattern (regex) |
+|---|---|---|
+| Start build | BASE_REF | `^refs/heads/main$` |
+| Start build | FILE_PATH | `^pdf_ui/\|^buildspec-frontend\.yml$` |
+
+Replace `main` with your branch name if different.
+
+### Cleaning Up Pipeline Resources
+
+To remove all CodeBuild projects and IAM roles created by the script:
+
+```bash
+./deploy-private.sh --cleanup
+```
+
+This deletes all `pdf-ui-*` CodeBuild projects and their associated IAM roles. It does not destroy the CDK stack or Amplify app — use `cdk destroy` for that.
+
+---
 
 ## Using the Application
 
 ### First-Time User Registration
 
-1. **Navigate to the Application URL**
-
-   - Open the Amplify URL provided after deployment
-
-2. **Create an Account**
-
-   - Click "Sign Up"
-   - Enter your email, name, and password
-   - Verify your email address
-
-3. **Complete Your Profile**
-   - On first sign-in, you'll be prompted to enter:
-     - Organization name
-     - Country, State, and City (optional)
-   - This information helps us understand our user base
+1. **Navigate to the Application URL** — open the Amplify URL provided after deployment
+2. **Create an Account** — click "Sign Up", enter your email, name, and password, then verify your email
+3. **Complete Your Profile** — on first sign-in, enter your organization name and optionally your location
 
 ### Uploading and Processing PDFs
 
 1. **Choose Output Format**
-
-   - Select **PDF-to-PDF** to maintain PDF format with accessibility improvements
-   - Select **PDF-to-HTML** to convert to accessible HTML format
+   - **PDF-to-PDF** — maintains PDF format with accessibility improvements
+   - **PDF-to-HTML** — converts to accessible HTML format
 
 2. **Upload Your PDF**
-
    - Click "Upload PDF" or drag and drop
-   - File must meet your quota limits:
-     - Maximum file size (default: 25 MB)
-     - Maximum pages (default: 10 pages)
+   - File must meet your quota limits (default: 25 MB max size, 10 pages max)
    - The system validates your file before upload
 
-3. **Monitor Processing**
-
-   - Real-time status updates
-   - Processing time varies by file size and complexity
-   - Typical processing: 2-5 minutes per document
+3. **Monitor Processing** — real-time status updates; typical processing is 2–5 minutes per document
 
 4. **Download Results**
-   - Once complete, download your remediated file
-   - PDF-to-PDF: Accessibility-improved PDF
+   - PDF-to-PDF: accessibility-improved PDF
    - PDF-to-HTML: ZIP file containing HTML, images, and reports
 
 ### Understanding Your Quota
 
-Your upload quota is displayed in the header:
+Your upload quota is displayed in the header showing current usage vs. maximum allowed.
 
-- **Current Usage**: Number of files uploaded
-- **Maximum Allowed**: Your upload limit
+| Group | Trigger | Max Files | Max Pages | Max Size (MB) |
+|---|---|---|---|---|
+| DefaultUsers | All users | 8 | 10 | 25 |
+| AmazonUsers | @amazon.com email | 15 | 10 | 25 |
+| AdminUsers | Manual assignment | 100 | 2500 | 1000 |
 
 ### Group Management
 
@@ -208,34 +321,27 @@ Administrators can change user groups through the AWS Cognito console:
 ### AWS Resources Created
 
 **Authentication & Authorization:**
-
 - Amazon Cognito User Pool with custom attributes
 - Cognito Identity Pool for S3 access
 - Three user groups (Default, Amazon, Admin)
-- Hosted UI for sign-in/sign-up
+- Managed login UI (version 2)
 
 **Backend APIs:**
-
 - API Gateway REST API with Cognito authorizer
-- Lambda functions for quota management
-- Lambda functions for user profile updates
-- EventBridge rules for automatic quota updates
+- Lambda functions for quota management and user profile updates
+- EventBridge rules for automatic quota updates on group changes
 
 **Frontend Hosting:**
-
-- AWS Amplify application
-- Automatic HTTPS and custom domain support
+- AWS Amplify application with manual deployment
+- Automatic HTTPS
 - SPA routing configuration
 
 **Monitoring:**
-
 - CloudWatch Logs for all Lambda functions
 - CloudTrail for Cognito group changes
 - API Gateway access logs
 
 ### Custom Cognito Attributes
-
-The system tracks the following user attributes:
 
 ```
 custom:first_sign_in          - Boolean: First login flag
@@ -255,66 +361,31 @@ custom:pdf2html               - Number: PDF-to-HTML conversions
 
 ### CloudWatch Logs
 
-Monitor application activity through CloudWatch:
+| Log Group | Purpose |
+|---|---|
+| `/aws/lambda/PostConfirmationLambda` | User registration events |
+| `/aws/lambda/UpdateAttributesFn` | Profile updates |
+| `/aws/lambda/checkOrIncrementQuotaFn` | Quota checks and increments |
+| `/aws/lambda/UpdateAttributesGroupsFn` | Group membership changes |
 
-**Lambda Functions:**
+### Troubleshooting
 
-- `/aws/lambda/PostConfirmationLambda` - User registration events
-- `/aws/lambda/UpdateAttributesFn` - Profile updates
-- `/aws/lambda/checkOrIncrementQuotaFn` - Quota checks and increments
-- `/aws/lambda/UpdateAttributesGroupsFn` - Group membership changes
+**"You have reached your upload limit"** — quota exceeded. Contact an administrator or check your current usage in the header.
 
-#### Upload Failures
+**"File size exceeds limit"** or **"PDF file cannot exceed X pages"** — reduce file size, split into smaller documents, or request a quota increase.
 
-**Error: "You have reached your upload limit"**
+**"At least one bucket name is required"** — deploy the backend first and provide bucket names.
 
-- **Cause**: Quota exceeded
-- **Solution**:
-  - Contact administrator to increase quota
-  - Wait for quota reset (if applicable)
-  - Check your current usage in the header
+**"Failed to create IAM role"** — ensure your AWS user has IAM creation permissions.
 
-**Error: "File size exceeds limit"**
-
-- **Cause**: File too large for your quota
-- **Solution**:
-  - Reduce PDF file size
-  - Split large PDFs into smaller documents
-  - Request quota increase from administrator
-
-**Error: "PDF file cannot exceed X pages"**
-
-- **Cause**: PDF has too many pages
-- **Solution**:
-  - Split PDF into smaller documents
-  - Request quota increase from administrator
-
-#### Deployment Issues
-
-**Error: "At least one bucket name is required"**
-
-- **Cause**: No backend buckets configured
-- **Solution**: Deploy the backend first and provide bucket names
-
-**Error: "Failed to create IAM role"**
-
-- **Cause**: Insufficient permissions
-- **Solution**: Ensure your AWS user has IAM creation permissions
-
-**Error: "CDK deployment failed"**
-
-- **Cause**: Various CDK-related issues
-- **Solution**:
-  - Check CloudFormation console for detailed errors
-  - Ensure CDK is bootstrapped: `cdk bootstrap`
-  - Verify all prerequisites are met
+**"CDK deployment failed"** — check CloudFormation console for details, ensure CDK is bootstrapped (`cdk bootstrap`), and verify all prerequisites are met.
 
 ### Getting Help
 
-- **Check CloudWatch Logs**: Most issues are logged in CloudWatch
-- **Review CloudFormation Events**: Deployment issues show in CloudFormation
-- **Verify Backend Deployment**: Ensure backend is deployed and accessible
-- **Contact Support**: ai-cic@amazon.com
+- **CloudWatch Logs**: most runtime issues are logged here
+- **CloudFormation Events**: deployment issues show in the CloudFormation console
+- **Email**: ai-cic@amazon.com
+- **Issues**: [GitHub Issues](https://github.com/ASUCICREPO/PDF_accessability_UI/issues)
 
 ## Contributing
 
@@ -340,5 +411,5 @@ For questions, issues, or support:
 
 ---
 
-**Built by Arizona State University's AI Cloud Innovation Center (AI CIC)**  
+**Built by Arizona State University's AI Cloud Innovation Center (AI CIC)**
 **Powered by AWS**
