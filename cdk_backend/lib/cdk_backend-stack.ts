@@ -19,6 +19,7 @@ export class CdkBackendStack extends cdk.Stack {
     
     const PDF_TO_PDF_BUCKET = this.node.tryGetContext('PDF_TO_PDF_BUCKET') || "Null";
     const PDF_TO_HTML_BUCKET = this.node.tryGetContext('PDF_TO_HTML_BUCKET') || "Null";
+    const selfSignUp = this.node.tryGetContext('SELF_SIGNUP') === 'true';
 
     // Validate that at least one bucket is provided
     if (!PDF_TO_PDF_BUCKET && !PDF_TO_HTML_BUCKET) {
@@ -194,7 +195,7 @@ export class CdkBackendStack extends cdk.Stack {
     // ------------------- Cognito: User Pool, Domain, Client -------------------
     const userPool = new cognito.UserPool(this, 'PDF-Accessability-User-Pool', {
       userPoolName: 'PDF-Accessability-User-Pool',
-      selfSignUpEnabled: true,
+      selfSignUpEnabled: selfSignUp,
       signInAliases: { email: true },
 
       autoVerify: { email: true },
