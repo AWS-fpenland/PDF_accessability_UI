@@ -560,6 +560,66 @@ create_codebuild_project() {
 }
 
 # ---------------------------------------------------------------------------
+# Webhook Configuration (auto-build on push / merge)
+# ---------------------------------------------------------------------------
+create_webhook() {
+  local project_name="$1"
+  local branch="$2"
+  shift 2
+  local file_patterns=("$@")  # remaining args are FILE_PATH patterns
+
+  # CodeCommit doesn't support CodeBuild webhooks
+  if [[ "$SOURCE_PROVIDER" == "codecommit" ]]; then
+    print_warning "Webhooks are not supported for CodeCommit. Skipping for $project_name."
+    return 0
+  fi
+
+  print_status "Configuring webhook for $project_name..."
+
+  # Build filter groups:
+  #   Group 1 — PUSH events on the target branch (+ optional file paths)
+  #   Group 2 — PULL_REQUEST_MERGED events on the target branch (+ optional file paths)
+  local push_filters='[{"type":"EVENT","pattern":"PUSH"},{"type":"HEAD_REF","pattern":"^refs/heads/'"$branch"'$"}'
+  local merge_filters='[{"type":"EVENT","pattern":"PULL_REQUEST_MERGED"},{"type":"BASE_REF","pattern":"^refs/heads/'"$branch"'$"}'
+
+  # Append FILE_PATH filter when patterns are provided
+  if [[ ${#file_patterns[@]} -gt 0 ]]; then
+    # Join patterns with | for regex alternation
+    local joined=""
+    for p in "${file_patterns[@]}"; do
+      [[ -n "$joined" ]] && joined+="|"
+      joined+="$p"
+    done
+    local file_filter=',{"type":"FILE_PATH","pattern":"'"$joined"'"}'
+    push_filters+="$file_filter"
+    merge_filters+="$file_filter"
+  fi
+
+  push_filters+="]"
+  merge_filters+="]"
+
+  local filter_groups="[$push_filters,$merge_filters]"
+
+  # Delete existing webhook if present (idempotent)
+  aws codebuild delete-webhook \
+    --project-name "$project_name" >/dev/null 2>&1 || true
+
+  aws codebuild create-webhook \
+    --project-name "$project_name" \
+    --filter-groups "$filter_groups" \
+    --build-type "BUILD" \
+    --output json >/dev/null 2>&1 || {
+    print_warning "Could not create webhook for $project_name. You may need to set it up manually."
+    return 0
+  }
+
+  print_success "Webhook created for $project_name (push + merge → $branch)"
+  if [[ ${#file_patterns[@]} -gt 0 ]]; then
+    print_status "  File path filter: ${file_patterns[*]}"
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Build Monitoring
 # ---------------------------------------------------------------------------
 show_build_logs() {
@@ -762,6 +822,10 @@ deploy_frontend() {
 
   print_success "Frontend CodeBuild project ready: $frontend_project"
 
+  # Set up webhook: trigger frontend builds only when frontend-related files change
+  create_webhook "$frontend_project" "$TARGET_BRANCH" \
+    "^pdf_ui/" "^buildspec-frontend\\.yml$"
+
   # Start and monitor frontend build
   if start_and_monitor_build "$frontend_project" "$TARGET_BRANCH"; then
     print_success "Frontend deployed to: $amplify_app_url"
@@ -947,6 +1011,10 @@ main() {
 
   local backend_project="${PROJECT_NAME}-backend"
   create_codebuild_project "$backend_project" "$BUILDSPEC_FILE" "$backend_env_vars"
+
+  # Set up webhook: trigger backend builds only when backend-related files change
+  create_webhook "$backend_project" "$TARGET_BRANCH" \
+    "^cdk_backend/" "^buildspec\\.yml$" "^lambda/"
 
   if ! start_and_monitor_build "$backend_project" "$TARGET_BRANCH"; then
     print_error "Backend deployment failed. Cannot proceed with frontend."
