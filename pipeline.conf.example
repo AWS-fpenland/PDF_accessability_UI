@@ -1,0 +1,20 @@
+# Private CI/CD Pipeline Configuration for PDF Accessibility UI
+#
+# Copy this file to pipeline.conf and fill in your values.
+# Usage: ./deploy-private.sh --config pipeline.conf
+
+# Required: Your private repository URL
+PRIVATE_REPO_URL=https://github.com/your-org/PDF_accessability_UI
+
+# Required: Source provider (github, codecommit, bitbucket, gitlab)
+SOURCE_PROVIDER=github
+
+# Required: Branch to deploy from
+TARGET_BRANCH=main
+
+# Required for non-CodeCommit providers: AWS CodeConnections ARN
+CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789012:connection/your-connection-id
+
+# At least one bucket is required — these come from the PDF_Accessibility backend deployment
+PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789012-us-east-1
+PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789012-us-east-1
