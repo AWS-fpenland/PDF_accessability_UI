@@ -114,10 +114,20 @@ The script will guide you through:
    - Deploy backend infrastructure (Cognito, Lambda, API Gateway)
    - Build and deploy the React frontend to Amplify
    - Configure all integrations automatically
+   - Set up webhooks for automatic builds on push and PR merge (GitHub, Bitbucket, GitLab only)
 
 3. **Deployment Progress**: Monitor real-time deployment status
    - Backend deployment: ~3-5 minutes
    - Frontend deployment: ~5-10 minutes
+
+### Automatic Build Triggers (Webhooks)
+
+After deployment, the script automatically configures CodeBuild webhooks so that future changes trigger builds without manual intervention:
+
+- **Backend project** — triggers on pushes or PR merges that touch `cdk_backend/`, `buildspec.yml`, or `lambda/`
+- **Frontend project** — triggers on pushes or PR merges that touch `pdf_ui/` or `buildspec-frontend.yml`
+
+Webhooks are supported for GitHub, Bitbucket, and GitLab. CodeCommit does not support CodeBuild webhooks and is skipped automatically.
 
 ### Step 4: Access Your Application
 
