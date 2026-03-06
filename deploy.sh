@@ -47,6 +47,18 @@ if ([ -z "${PDF_TO_PDF_BUCKET:-}" ] || [ "${PDF_TO_PDF_BUCKET}" = "Null" ]) && (
   exit 1
 fi
 
+# Prompt for self-service signup toggle
+echo ""
+echo "🔐 User Registration:"
+echo "   Enable self-service signup? This allows users to create their own accounts."
+echo "   If disabled, only admins can create user accounts."
+read -rp "Enable self-service signup? (y/N): " SELF_SIGNUP_CHOICE
+case "${SELF_SIGNUP_CHOICE}" in
+  [Yy]*) SELF_SIGNUP="true" ;;
+  *)     SELF_SIGNUP="false" ;;
+esac
+echo "   Self-service signup: $SELF_SIGNUP"
+
 # --------------------------------------------------
 # 2. Ensure IAM service role exists
 # --------------------------------------------------
@@ -431,6 +443,16 @@ if [ -n "${PDF_TO_HTML_BUCKET:-}" ] && [ "${PDF_TO_HTML_BUCKET}" != "Null" ]; th
       "type":  "PLAINTEXT"
     }'
 fi
+
+# Add SELF_SIGNUP toggle
+if [ -n "$ENV_VARS_ARRAY" ]; then
+  ENV_VARS_ARRAY="$ENV_VARS_ARRAY,"
+fi
+ENV_VARS_ARRAY="$ENV_VARS_ARRAY"'{
+    "name":  "SELF_SIGNUP",
+    "value": "'"$SELF_SIGNUP"'",
+    "type":  "PLAINTEXT"
+  }'
 
 BACKEND_ENVIRONMENT='{
   "type": "LINUX_CONTAINER",

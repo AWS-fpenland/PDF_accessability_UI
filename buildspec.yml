@@ -20,7 +20,8 @@ phases:
       - >-
         cdk bootstrap --require-approval never \
           -c PDF_TO_PDF_BUCKET=$PDF_TO_PDF_BUCKET \
-          -c PDF_TO_HTML_BUCKET=$PDF_TO_HTML_BUCKET
+          -c PDF_TO_HTML_BUCKET=$PDF_TO_HTML_BUCKET \
+          -c SELF_SIGNUP=${SELF_SIGNUP:-false}
 
   build:
     commands:
@@ -28,7 +29,8 @@ phases:
       - >-
         cdk deploy --all --require-approval never \
           -c PDF_TO_PDF_BUCKET=$PDF_TO_PDF_BUCKET \
-          -c PDF_TO_HTML_BUCKET=$PDF_TO_HTML_BUCKET
+          -c PDF_TO_HTML_BUCKET=$PDF_TO_HTML_BUCKET \
+          -c SELF_SIGNUP=${SELF_SIGNUP:-false}
 
   post_build:
     commands:
