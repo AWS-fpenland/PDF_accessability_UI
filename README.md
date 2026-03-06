@@ -103,7 +103,12 @@ The script will guide you through:
    - PDF-to-HTML bucket name (or leave empty if not using)
    - At least one bucket is required
 
-2. **Automated Deployment**: The script will:
+2. **User Registration**: Choose whether to enable self-service signup
+
+   - **Yes** — anyone can create an account via the sign-up page
+   - **No** (default) — only administrators can create user accounts through the Cognito console
+
+3. **Automated Deployment**: The script will:
 
    - Create IAM roles with necessary permissions
    - Deploy backend infrastructure (Cognito, Lambda, API Gateway)
