@@ -341,7 +341,7 @@ const LandingPage = () => {
               <SmallFiberManualRecordIcon size="12px" sx={{ color: '#000000' }} />
             </ListItemIcon>
             <Typography variant="body1" component="h3">
-            Want a personalized demo of this solution? Have questions about your customer setup?{' '}
+            Want a personalized demo of this solution? Have questions about your customer setup? THIS IS A DEMO SITE OWNED BY FOREST PENLAND{' '}
               <StyledLink
                 href="https://aws.amazon.com/government-education/contact/"
                 target="_blank"

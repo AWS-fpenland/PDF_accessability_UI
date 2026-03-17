@@ -47,6 +47,18 @@ if ([ -z "${PDF_TO_PDF_BUCKET:-}" ] || [ "${PDF_TO_PDF_BUCKET}" = "Null" ]) && (
   exit 1
 fi
 
+# Prompt for self-service signup toggle
+echo ""
+echo "🔐 User Registration:"
+echo "   Enable self-service signup? This allows users to create their own accounts."
+echo "   If disabled, only admins can create user accounts."
+read -rp "Enable self-service signup? (y/N): " SELF_SIGNUP_CHOICE
+case "${SELF_SIGNUP_CHOICE}" in
+  [Yy]*) SELF_SIGNUP="true" ;;
+  *)     SELF_SIGNUP="false" ;;
+esac
+echo "   Self-service signup: $SELF_SIGNUP"
+
 # --------------------------------------------------
 # 2. Ensure IAM service role exists
 # --------------------------------------------------
@@ -77,7 +89,23 @@ else
 
   # Get the current AWS account ID and region for resource scoping
   AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-  AWS_REGION=$(aws configure get region || echo "us-east-1")
+
+  # Determine AWS region without hardcoded defaults.
+  # Priority:
+  # 1) Explicit AWS_REGION (e.g., set by CloudShell)
+  # 2) AWS_DEFAULT_REGION (CloudShell / environment)
+  # 3) AWS CLI configured region (aws configure get region)
+  AWS_REGION="${AWS_REGION:-$AWS_DEFAULT_REGION}"
+  if [ -z "$AWS_REGION" ]; then
+    AWS_REGION=$(aws configure get region 2>/dev/null || echo "")
+  fi
+
+  if [ -z "$AWS_REGION" ]; then
+    echo "❌ Could not determine AWS region."
+    echo "   Please run in CloudShell (which sets AWS_DEFAULT_REGION) or configure a region via:"
+    echo "     aws configure set region <your-region>"
+    exit 1
+  fi
 
   CUSTOM_POLICY='{
     "Version": "2012-10-17",
@@ -415,6 +443,16 @@ if [ -n "${PDF_TO_HTML_BUCKET:-}" ] && [ "${PDF_TO_HTML_BUCKET}" != "Null" ]; th
       "type":  "PLAINTEXT"
     }'
 fi
+
+# Add SELF_SIGNUP toggle
+if [ -n "$ENV_VARS_ARRAY" ]; then
+  ENV_VARS_ARRAY="$ENV_VARS_ARRAY,"
+fi
+ENV_VARS_ARRAY="$ENV_VARS_ARRAY"'{
+    "name":  "SELF_SIGNUP",
+    "value": "'"$SELF_SIGNUP"'",
+    "type":  "PLAINTEXT"
+  }'
 
 BACKEND_ENVIRONMENT='{
   "type": "LINUX_CONTAINER",

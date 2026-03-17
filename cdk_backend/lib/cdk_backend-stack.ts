@@ -20,6 +20,7 @@ export class CdkBackendStack extends cdk.Stack {
     
     const PDF_TO_PDF_BUCKET = this.node.tryGetContext('PDF_TO_PDF_BUCKET') || "Null";
     const PDF_TO_HTML_BUCKET = this.node.tryGetContext('PDF_TO_HTML_BUCKET') || "Null";
+    const selfSignUp = this.node.tryGetContext('SELF_SIGNUP') === 'true';
 
     // Validate that at least one bucket is provided
     if (!PDF_TO_PDF_BUCKET && !PDF_TO_HTML_BUCKET) {
@@ -83,7 +84,11 @@ export class CdkBackendStack extends cdk.Stack {
       status: amplify.RedirectStatus.REWRITE
     }));
 
-    const domainPrefix = this.node.tryGetContext('COGNITO_DOMAIN_PREFIX') || `pdf-ui-auth${this.node.addr.substring(0, 6)}`;
+    // Domain prefix must be globally unique per region. Using the AWS account
+    // ID so it's stable across deploys but unique across accounts.
+    // Override with CDK context: -c DOMAIN_PREFIX=my-custom-prefix
+    const domainPrefix = this.node.tryGetContext('DOMAIN_PREFIX')
+      || `pdf-ui-auth-${this.account}`;
     const Default_Group = 'DefaultUsers';
     const Amazon_Group = 'AmazonUsers';
     const Admin_Group = 'AdminUsers';
@@ -191,7 +196,7 @@ export class CdkBackendStack extends cdk.Stack {
     // ------------------- Cognito: User Pool, Domain, Client -------------------
     const userPool = new cognito.UserPool(this, 'PDF-Accessability-User-Pool', {
       userPoolName: 'PDF-Accessability-User-Pool',
-      selfSignUpEnabled: true,
+      selfSignUpEnabled: selfSignUp,
       signInAliases: { email: true },
 
       autoVerify: { email: true },
@@ -271,6 +276,8 @@ export class CdkBackendStack extends cdk.Stack {
       });
 
     // Domain prefix is defined above with appUrl
+    // Using L1 CfnUserPoolDomain because managedLoginVersion L2 support
+    // requires aws-cdk-lib >= 2.178.0 (ManagedLoginVersion enum).
     const userPoolDomain = new cognito.CfnUserPoolDomain(this, 'PDF-Accessability-User-Pool-Domain', {
       domain: domainPrefix,
       userPoolId: userPool.userPoolId,

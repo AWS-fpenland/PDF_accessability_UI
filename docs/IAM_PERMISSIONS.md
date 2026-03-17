@@ -24,7 +24,7 @@ The UI deployment requires access to the following AWS services:
 - **Amazon EventBridge** - Event-driven automation
 - **Amazon CloudWatch Logs** - Application logging and monitoring
 - **AWS STS** - Temporary credential generation
-- **AWS CodeBuild** - Automated deployment pipeline
+- **AWS CodeBuild** - Automated deployment pipeline and webhook management
 
 ---
 
@@ -217,6 +217,25 @@ These permissions are required for the IAM role used by CodeBuild during deploym
 - Verify AWS account identity
 - Assume roles for cross-service access
 - Generate temporary credentials
+
+### CodeBuild Webhook Permissions
+
+```json
+{
+    "Sid": "CodeBuildWebhookAccess",
+    "Effect": "Allow",
+    "Action": [
+        "codebuild:CreateWebhook",
+        "codebuild:DeleteWebhook"
+    ],
+    "Resource": "*"
+}
+```
+
+**Why needed:**
+- Create webhooks on CodeBuild projects so builds trigger automatically on push and PR merge events
+- Delete existing webhooks before re-creating them (idempotent setup)
+- Only applies to GitHub, Bitbucket, and GitLab sources (CodeCommit does not support webhooks)
 
 ---
 
