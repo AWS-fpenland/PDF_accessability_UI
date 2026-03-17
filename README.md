@@ -107,13 +107,26 @@ The script will guide you through:
 
 ### Step 3: Access Your Application
 
-After successful deployment (~8–15 minutes), the script displays:
+#### Step 4: Access Your Application
+
+After successful deployment, the script will display:
 
 ```
 ✅ Frontend deployment completed successfully!
 🌐 Frontend URL: https://main.{app-id}.amplifyapp.com
 ```
 
+### Option 3: Frontend-Only Deployment
+
+If backend is already deployed, update just the frontend:
+
+```bash
+./deploy-amplify-direct.sh [PDF_BUCKET] [HTML_BUCKET]
+```
+
+See [Direct Amplify Deployment Guide](docs/DIRECT_AMPLIFY_DEPLOYMENT.md) for details.
+
+Visit the URL to access your PDF Accessibility UI!
 > **Note:** The public deploy script does not configure webhooks. Each deployment is a one-time build. To redeploy after code changes, re-run `./deploy.sh`.
 
 ---
