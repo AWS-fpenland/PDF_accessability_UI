@@ -268,7 +268,8 @@ function MainApp({ isLoggingOut, setIsLoggingOut }) {
               <Tab label="My Documents" />
             </Tabs>
 
-            <Box sx={{ display: activeTab === 0 ? 'block' : 'none' }}>
+            {activeTab === 0 && (
+              <>
                 {currentPage === 'upload' && (
                   <UploadSection
                     onUploadComplete={handleUploadComplete}
@@ -315,11 +316,12 @@ function MainApp({ isLoggingOut, setIsLoggingOut }) {
                     onNewUpload={handleNewUpload}
                   />
                 )}
-            </Box>
+              </>
+            )}
 
-            <Box sx={{ display: activeTab === 1 ? 'block' : 'none' }}>
+            {activeTab === 1 && (
               <JobHistory awsCredentials={awsCredentials} />
-            </Box>
+            )}
 
 
           </Container>
