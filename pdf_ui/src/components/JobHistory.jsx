@@ -57,7 +57,7 @@ export default function JobHistory({ awsCredentials }) {
       const command = new GetObjectCommand({
         Bucket: job.s3_bucket,
         Key: job.s3_result_key,
-        ResponseContentDisposition: `attachment; filename="${job.filename}"`,
+        ResponseContentDisposition: `attachment; filename="${job.s3_result_key.split('/').pop()}"`,
       });
       const url = await getSignedUrl(s3, command, { expiresIn: 30000 });
       window.open(url, '_blank');
