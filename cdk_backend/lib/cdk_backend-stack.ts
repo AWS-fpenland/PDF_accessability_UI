@@ -573,6 +573,12 @@ export class CdkBackendStack extends cdk.Stack {
 
     jobHistoryTable.grantReadWriteData(jobHistoryFn);
 
+    // Grant S3 HeadObject so the Lambda can check for result files server-side
+    jobHistoryFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: s3Resources,
+    }));
+
     const jobsResource = updateAttributesApi.root.addResource('jobs');
     jobsResource.addMethod('POST', new apigateway.LambdaIntegration(jobHistoryFn), {
       authorizer: userPoolAuthorizer,
