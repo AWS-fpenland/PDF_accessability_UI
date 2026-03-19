@@ -735,7 +735,7 @@ deploy_frontend() {
   # Extract outputs
   local amplify_app_id user_pool_id user_pool_client_id user_pool_domain
   local identity_pool_id update_first_sign_in_endpoint check_upload_quota_endpoint
-  local amplify_app_url update_attributes_api_endpoint
+  local amplify_app_url update_attributes_api_endpoint job_history_endpoint
 
   amplify_app_id="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "AmplifyAppId") | .OutputValue')"
   amplify_app_url="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "AmplifyAppURL") | .OutputValue')"
@@ -745,6 +745,7 @@ deploy_frontend() {
   identity_pool_id="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "IdentityPoolId") | .OutputValue')"
   update_first_sign_in_endpoint="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "UpdateFirstSignInEndpoint") | .OutputValue')"
   check_upload_quota_endpoint="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "CheckUploadQuotaEndpoint") | .OutputValue')"
+  job_history_endpoint="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "JobHistoryEndpoint") | .OutputValue')"
   update_attributes_api_endpoint="$(echo "$cdk_outputs" | jq -r '.[] | select(.OutputKey == "UpdateAttributesApiEndpoint377B5108") | .OutputValue')"
 
   if [[ -z "$amplify_app_id" || "$amplify_app_id" == "null" ]]; then
@@ -784,6 +785,7 @@ deploy_frontend() {
   add_fe_env "REACT_APP_IDENTITY_POOL_ID" "$identity_pool_id"
   add_fe_env "REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT" "$update_first_sign_in_endpoint"
   add_fe_env "REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT" "$check_upload_quota_endpoint"
+  add_fe_env "REACT_APP_JOB_HISTORY_ENDPOINT" "$job_history_endpoint"
   add_fe_env "REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT" "$update_attributes_api_endpoint"
 
   fe_env_vars+="]"

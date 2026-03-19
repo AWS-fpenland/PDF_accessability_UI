@@ -61,6 +61,7 @@ REACT_APP_USER_POOL_DOMAIN=$(echo "$CDK_OUTPUTS" | jq -r '.[] | select(.OutputKe
 REACT_APP_IDENTITY_POOL_ID=$(echo "$CDK_OUTPUTS" | jq -r '.[] | select(.OutputKey == "IdentityPoolId") | .OutputValue')
 REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT=$(echo "$CDK_OUTPUTS" | jq -r '.[] | select(.OutputKey == "UpdateFirstSignInEndpoint") | .OutputValue')
 REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT=$(echo "$CDK_OUTPUTS" | jq -r '.[] | select(.OutputKey == "CheckUploadQuotaEndpoint") | .OutputValue')
+REACT_APP_JOB_HISTORY_ENDPOINT=$(echo "$CDK_OUTPUTS" | jq -r '.[] | select(.OutputKey == "JobHistoryEndpoint") | .OutputValue')
 REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT=$(echo "$CDK_OUTPUTS" | jq -r '.[] | select(.OutputKey == "UpdateAttributesApiEndpoint377B5108") | .OutputValue')
 
 # Validate required outputs
@@ -141,6 +142,7 @@ add_frontend_env_var "REACT_APP_USER_POOL_DOMAIN" "$REACT_APP_USER_POOL_DOMAIN"
 add_frontend_env_var "REACT_APP_IDENTITY_POOL_ID" "$REACT_APP_IDENTITY_POOL_ID"
 add_frontend_env_var "REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT" "$REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT"
 add_frontend_env_var "REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT" "$REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT"
+add_frontend_env_var "REACT_APP_JOB_HISTORY_ENDPOINT" "$REACT_APP_JOB_HISTORY_ENDPOINT"
 add_frontend_env_var "REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT" "$REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT"
 
 FRONTEND_ENVIRONMENT='{
