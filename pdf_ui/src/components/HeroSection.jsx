@@ -1,6 +1,9 @@
 import React from 'react';
+import activeTheme from '../themes';
 
 const HeroSection = () => {
+  const { hero } = activeTheme;
+
   const heroSectionStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -19,21 +22,21 @@ const HeroSection = () => {
   };
 
   const heroTitleStyle = {
-    fontFamily: "'Geist', sans-serif",
+    fontFamily: hero.fontFamily,
     fontWeight: '600',
     fontSize: '28px',
     lineHeight: '36px',
-    color: '#020617',
+    color: hero.titleColor,
     margin: '0',
     whiteSpace: 'nowrap'
   };
 
   const heroDescriptionStyle = {
-    fontFamily: "'Geist', sans-serif",
+    fontFamily: hero.fontFamily,
     fontWeight: '400',
     fontSize: '20px',
     lineHeight: '30px',
-    color: '#1e293b',
+    color: hero.descriptionColor,
     margin: '0',
     maxWidth: '480px',
     width: '100%'
@@ -42,11 +45,8 @@ const HeroSection = () => {
   return (
     <div style={heroSectionStyle}>
       <div style={heroContentStyle}>
-        <h1 style={heroTitleStyle}>PDF Remediation</h1>
-        <p style={heroDescriptionStyle}>
-          Artificial intelligence-powered open-source solution designed to
-          improve digital accessibility for everyone.
-        </p>
+        <h1 style={heroTitleStyle}>{hero.title}</h1>
+        <p style={heroDescriptionStyle}>{hero.description}</p>
       </div>
     </div>
   );

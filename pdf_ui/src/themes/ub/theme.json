@@ -1,0 +1,22 @@
+{
+  "name": "University at Buffalo",
+  "colors": {
+    "primaryMain": "#005bbb",
+    "secondaryMain": "#002f56",
+    "chatLeftPanelBackground": "#002f56",
+    "headerBackground": "#005bbb",
+    "primary50": "#e0f0ff"
+  },
+  "hero": {
+    "title": "PDF Accessibility Solution",
+    "description": "University at Buffalo's AI-powered solution designed to improve digital accessibility and WCAG compliance for everyone.",
+    "titleColor": "#005bbb",
+    "descriptionColor": "#002f56",
+    "fontFamily": "'Roboto', 'Helvetica Neue', Arial, sans-serif"
+  },
+  "meta": {
+    "themeColor": "#005bbb",
+    "appTitle": "PDF Accessibility - UB Libraries",
+    "description": "PDF Accessibility Solution - Automated PDF remediation to meet WCAG 2.1 Level AA standards with tagging, metadata cleanup, and AI-powered alt-text generation, promoting digital accessibility for everyone."
+  }
+}

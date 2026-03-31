@@ -1,0 +1,22 @@
+{
+  "name": "Default",
+  "colors": {
+    "primaryMain": "#1976d2",
+    "secondaryMain": "#ff4081",
+    "chatLeftPanelBackground": "#2c3e50",
+    "headerBackground": "#34495e",
+    "primary50": "#e3f2fd"
+  },
+  "hero": {
+    "title": "PDF Remediation",
+    "description": "Artificial intelligence-powered open-source solution designed to improve digital accessibility for everyone.",
+    "titleColor": "#020617",
+    "descriptionColor": "#1e293b",
+    "fontFamily": "'Geist', sans-serif"
+  },
+  "meta": {
+    "themeColor": "#8C1D40",
+    "appTitle": "PDF Accessibility",
+    "description": "Experience the PDF Remediation solution developed at ASU AI Cloud Innovation Center. This innovative tool remediates PDF documents to meet WCAG 2.1 Level AA standards with tagging, metadata cleanup, and AI-powered alt-text generation, promoting digital accessibility for everyone."
+  }
+}
