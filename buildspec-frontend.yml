@@ -122,8 +122,8 @@ phases:
   post_build:
     commands:
       - source /tmp/frontend-env.sh
-      - echo "🚀 Deploying frontend to Amplify..."
-      - echo "Amplify App ID: $AMPLIFY_APP_ID"
+      - echo "Deploying frontend to Amplify..."
+      - echo "$AMPLIFY_APP_ID"
       - echo "Creating Amplify deployment..."
       - >-
         aws amplify create-deployment

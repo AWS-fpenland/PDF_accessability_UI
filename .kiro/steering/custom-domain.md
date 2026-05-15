@@ -280,8 +280,8 @@ phases:
   post_build:
     commands:
       - source /tmp/frontend-env.sh
-      - echo "🚀 Deploying frontend to Amplify..."
-      - echo "Amplify App ID: $AMPLIFY_APP_ID"
+      - echo "Deploying frontend to Amplify..."
+      - echo "$AMPLIFY_APP_ID"
       - >-
         aws amplify create-deployment
         --app-id $AMPLIFY_APP_ID
@@ -518,6 +518,7 @@ After applying the changes, the agent should verify:
 | Frontend project has stale `REACT_APP_AMPLIFY_APP_URL` | React app redirects to wrong host after sign-in | Apply the buildspec rewrite from Step 3 — the CFN-driven approach makes this self-healing |
 | Used a CloudFront-fronted custom cert workflow instead | Amplify's auto-renewal stops working / extra moving parts | Use Amplify's built-in `addDomain` (this doc); only switch architectures if a corporate cert is contractually required |
 | DNS in a zone the AWS account can't reach | Validation never completes | Have the customer add the records manually in whatever system owns the zone (e.g., `people.aws.dev` tooling, ServiceNow at an enterprise, etc.) |
+| `YAML_FILE_ERROR Message: Expected Commands[N] to be of string type: found subkeys instead` from CodeBuild on the buildspec | Inline `: ` (colon-space) inside a quoted `echo` argument trips CodeBuild's YAML parser even though Python's `yaml.safe_load` accepts it | Drop the colon-space: write `echo "Amplify App ID"` then `echo "$AMPLIFY_APP_ID"` on separate lines, or rephrase the message to use `=` or `—` instead of `: ` |
 
 ## What's Intentionally Not Included
 
