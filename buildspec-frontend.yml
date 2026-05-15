@@ -1,26 +1,97 @@
 version: 0.2
 
+# This buildspec reads the current CdkBackendStack outputs at build time so the
+# React bundle always reflects the canonical Amplify URL (custom domain when
+# set, default *.amplifyapp.com otherwise) without needing CodeBuild env-var
+# updates whenever the backend changes.
+#
+# Required project env vars (set at create time): PDF_TO_PDF_BUCKET, PDF_TO_HTML_BUCKET.
+# Everything else is pulled from CloudFormation; project env vars of the same
+# names are honored as fall-backs if the corresponding stack output is missing.
+
 phases:
   install:
     runtime-versions:
       nodejs: 20
       python: 3.12
     commands:
-      - echo "Installing zip utility..."
-      - yum install -y zip
-      - echo "Changing into pdf_ui directory"
-      - cd pdf_ui
+      - echo "Installing zip and jq..."
+      - yum install -y zip jq
 
   pre_build:
     commands:
+      - echo "Changing into pdf_ui directory"
+      - cd pdf_ui
       - echo "Installing frontend dependencies..."
       - npm ci
-      - echo "Creating .env file with environment variables..."
+      - echo "Querying CdkBackendStack outputs from CloudFormation..."
       - |
-        # Extract AWS region from User Pool ID (format: region_poolId)
-        AWS_REGION=$(echo $REACT_APP_USER_POOL_ID | cut -d'_' -f1)
+        STACK_NAME="${CDK_STACK_NAME:-CdkBackendStack}"
+        OUTPUTS_JSON=$(aws cloudformation describe-stacks \
+          --stack-name "$STACK_NAME" \
+          --query 'Stacks[0].Outputs' \
+          --output json 2>/dev/null || echo "[]")
+
+        # Helper: read a stack output by key, fall back to a default (current env var)
+        get_output() {
+          local key="$1"; local fallback="${2:-}"
+          local value
+          value=$(echo "$OUTPUTS_JSON" | jq -r --arg k "$key" \
+            '.[] | select(.OutputKey == $k) | .OutputValue' 2>/dev/null)
+          if [ -z "$value" ] || [ "$value" = "null" ]; then
+            echo "$fallback"
+          else
+            echo "$value"
+          fi
+        }
+
+        # Override env vars with live CFN output values when present
+        export AMPLIFY_APP_ID=$(get_output "AmplifyAppId" "${AMPLIFY_APP_ID:-}")
+        export REACT_APP_AMPLIFY_APP_URL=$(get_output "AmplifyAppURL" "${REACT_APP_AMPLIFY_APP_URL:-}")
+        export REACT_APP_USER_POOL_ID=$(get_output "UserPoolId" "${REACT_APP_USER_POOL_ID:-}")
+        export REACT_APP_USER_POOL_CLIENT_ID=$(get_output "UserPoolClientId" "${REACT_APP_USER_POOL_CLIENT_ID:-}")
+        export REACT_APP_USER_POOL_DOMAIN=$(get_output "UserPoolDomain" "${REACT_APP_USER_POOL_DOMAIN:-}")
+        export REACT_APP_IDENTITY_POOL_ID=$(get_output "IdentityPoolId" "${REACT_APP_IDENTITY_POOL_ID:-}")
+        export REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT=$(get_output "UpdateFirstSignInEndpoint" "${REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT:-}")
+        export REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT=$(get_output "CheckUploadQuotaEndpoint" "${REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT:-}")
+        export REACT_APP_JOB_HISTORY_ENDPOINT=$(get_output "JobHistoryEndpoint" "${REACT_APP_JOB_HISTORY_ENDPOINT:-}")
+        export REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT=$(get_output "UpdateAttributesApiEndpoint377B5108" "${REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT:-}")
+        export AMPLIFY_CUSTOM_DOMAIN=$(get_output "AmplifyCustomDomain" "")
+        export AMPLIFY_CUSTOM_DOMAIN_URL=$(get_output "AmplifyCustomDomainURL" "")
+
+        echo "Resolved configuration from CdkBackendStack:"
+        echo "  AmplifyAppId        = $AMPLIFY_APP_ID"
+        echo "  AmplifyAppURL       = $REACT_APP_AMPLIFY_APP_URL"
+        if [ -n "$AMPLIFY_CUSTOM_DOMAIN_URL" ]; then
+          echo "  Custom domain       = $AMPLIFY_CUSTOM_DOMAIN ($AMPLIFY_CUSTOM_DOMAIN_URL)"
+        fi
+
+        # Persist exports for subsequent build phases
+        cat > /tmp/frontend-env.sh <<EOF
+        export AMPLIFY_APP_ID="$AMPLIFY_APP_ID"
+        export REACT_APP_AMPLIFY_APP_URL="$REACT_APP_AMPLIFY_APP_URL"
+        export REACT_APP_USER_POOL_ID="$REACT_APP_USER_POOL_ID"
+        export REACT_APP_USER_POOL_CLIENT_ID="$REACT_APP_USER_POOL_CLIENT_ID"
+        export REACT_APP_USER_POOL_DOMAIN="$REACT_APP_USER_POOL_DOMAIN"
+        export REACT_APP_IDENTITY_POOL_ID="$REACT_APP_IDENTITY_POOL_ID"
+        export REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT="$REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT"
+        export REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT="$REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT"
+        export REACT_APP_JOB_HISTORY_ENDPOINT="$REACT_APP_JOB_HISTORY_ENDPOINT"
+        export REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT="$REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT"
+        EOF
+
+        if [ -z "$AMPLIFY_APP_ID" ] || [ -z "$REACT_APP_AMPLIFY_APP_URL" ]; then
+          echo "❌ Required values missing: AmplifyAppId or AmplifyAppURL not in CFN outputs"
+          echo "   and no fallback env var was provided."
+          exit 1
+        fi
+      - echo "Creating .env file with resolved configuration..."
+      - |
+        source /tmp/frontend-env.sh
+        AWS_REGION=$(echo "$REACT_APP_USER_POOL_ID" | cut -d'_' -f1)
         cat > .env << EOF
         # Environment variables for PDF Accessibility UI
+        # Generated at build time from CdkBackendStack CloudFormation outputs.
         REACT_APP_MAINTENANCE_MODE=false
         REACT_APP_AUTHORITY=cognito-idp.$AWS_REGION.amazonaws.com/$REACT_APP_USER_POOL_ID
         REACT_APP_AWS_REGION=$AWS_REGION
@@ -41,6 +112,7 @@ phases:
 
   build:
     commands:
+      - source /tmp/frontend-env.sh
       - echo "Building React application..."
       - npm run build
       - echo "Creating deployment package..."
@@ -49,25 +121,30 @@ phases:
 
   post_build:
     commands:
+      - source /tmp/frontend-env.sh
       - echo "🚀 Deploying frontend to Amplify..."
-      - echo $AMPLIFY_APP_ID
+      - echo "Amplify App ID: $AMPLIFY_APP_ID"
       - echo "Creating Amplify deployment..."
       - >-
-        aws amplify create-deployment \
-          --app-id $AMPLIFY_APP_ID \
-          --branch-name main \
-          --output json > deployment_response.json
+        aws amplify create-deployment
+        --app-id $AMPLIFY_APP_ID
+        --branch-name main
+        --output json > deployment_response.json
       - echo "Extracting upload URL and job ID..."
-      - >-
-        export UPLOAD_URL=$(python3 -c "import json; data=json.load(open('deployment_response.json')); print(data['zipUploadUrl'])")
-      - >-
-        export JOB_ID=$(python3 -c "import json; data=json.load(open('deployment_response.json')); print(data['jobId'])")
+      - export UPLOAD_URL=$(jq -r '.zipUploadUrl' deployment_response.json)
+      - export JOB_ID=$(jq -r '.jobId' deployment_response.json)
       - echo "Uploading build.zip to Amplify..."
       - curl -X PUT -T build.zip "$UPLOAD_URL"
       - echo "Starting deployment..."
       - >-
-        aws amplify start-deployment \
-          --app-id $AMPLIFY_APP_ID \
-          --branch-name main \
-          --job-id $JOB_ID
+        aws amplify start-deployment
+        --app-id $AMPLIFY_APP_ID
+        --branch-name main
+        --job-id $JOB_ID
       - echo "✅ Frontend deployment initiated successfully!"
+      - |
+        if [ -n "$AMPLIFY_CUSTOM_DOMAIN_URL" ]; then
+          echo "🌐 Live at custom domain (once DNS validates): $AMPLIFY_CUSTOM_DOMAIN_URL"
+        else
+          echo "🌐 Live at: $REACT_APP_AMPLIFY_APP_URL"
+        fi
