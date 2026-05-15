@@ -22,3 +22,10 @@ PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789012-us-east-1
 # Self-service user registration: true or false (default: false)
 # When false, only admins can create user accounts
 SELF_SIGNUP=false
+
+# Optional: Custom domain to attach to the Amplify app (e.g., app.example.edu).
+# Amplify provisions and renews an ACM certificate automatically. After deploy,
+# you'll need to add the CNAME / verification records Amplify shows in the
+# console (or in CloudFormation events) to your DNS provider. Leave blank to
+# use only the default *.amplifyapp.com URL.
+# CUSTOM_DOMAIN=app.example.edu

@@ -92,7 +92,29 @@ export class CdkBackendStack extends cdk.Stack {
     const Default_Group = 'DefaultUsers';
     const Amazon_Group = 'AmazonUsers';
     const Admin_Group = 'AdminUsers';
-    const appUrl = `https://main.${amplifyApp.appId}.amplifyapp.com`;
+
+    // --------- Optional Custom Domain ----------
+    // Pass with: -c CUSTOM_DOMAIN=app.example.edu
+    // Amplify Hosting issues and renews the ACM certificate automatically.
+    // After deploy, create the validation/CNAME records Amplify shows in the
+    // console (or in CloudFormation events) at your DNS provider.
+    const customDomainName: string | undefined = this.node.tryGetContext('CUSTOM_DOMAIN') || undefined;
+
+    const defaultAmplifyUrl = `https://main.${amplifyApp.appId}.amplifyapp.com`;
+    const customDomainUrl = customDomainName ? `https://${customDomainName}` : undefined;
+    // Primary app URL — custom domain takes precedence when present so the
+    // React app, Cognito callbacks, and CORS all key off the canonical host.
+    const appUrl = customDomainUrl || defaultAmplifyUrl;
+
+    if (customDomainName) {
+      const customDomain = amplifyApp.addDomain(customDomainName, {
+        enableAutoSubdomain: false,
+      });
+      customDomain.mapRoot(mainBranch);
+      // Also serve www.<customDomainName> if customers hit it directly.
+      // Comment out if you don't want the www subdomain.
+      customDomain.mapSubDomain(mainBranch, 'www');
+    }
 
     // --------- Set CORS on imported S3 buckets via custom resource ----------
     const corsConfiguration = {
@@ -100,7 +122,9 @@ export class CdkBackendStack extends cdk.Stack {
         {
           AllowedHeaders: ['*'],
           AllowedMethods: ['GET', 'PUT', 'POST', 'HEAD'],
-          AllowedOrigins: [appUrl, 'http://localhost:3000'],
+          AllowedOrigins: customDomainUrl
+            ? [customDomainUrl, defaultAmplifyUrl, 'http://localhost:3000']
+            : [defaultAmplifyUrl, 'http://localhost:3000'],
           ExposeHeaders: ['ETag'],
           MaxAgeSeconds: 3600,
         },
@@ -302,8 +326,12 @@ export class CdkBackendStack extends cdk.Stack {
           cognito.OAuthScope.PHONE,
           cognito.OAuthScope.PROFILE
         ],
-        callbackUrls: [`${appUrl}/callback`,"http://localhost:3000/callback"],
-        logoutUrls: [`${appUrl}/home`, "http://localhost:3000/home"],
+        callbackUrls: customDomainUrl
+          ? [`${customDomainUrl}/callback`, `${defaultAmplifyUrl}/callback`, "http://localhost:3000/callback"]
+          : [`${defaultAmplifyUrl}/callback`, "http://localhost:3000/callback"],
+        logoutUrls: customDomainUrl
+          ? [`${customDomainUrl}/home`, `${defaultAmplifyUrl}/home`, "http://localhost:3000/home"]
+          : [`${defaultAmplifyUrl}/home`, "http://localhost:3000/home"],
       },
       generateSecret: false,
       preventUserExistenceErrors: true,
@@ -608,8 +636,24 @@ export class CdkBackendStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'AmplifyAppURL', {
       value: appUrl,
-      description: 'Amplify Application URL',
+      description: 'Amplify Application URL (custom domain when configured, otherwise the default amplifyapp.com URL)',
     });
+
+    new cdk.CfnOutput(this, 'AmplifyDefaultURL', {
+      value: defaultAmplifyUrl,
+      description: 'Amplify default amplifyapp.com URL (always available)',
+    });
+
+    if (customDomainUrl) {
+      new cdk.CfnOutput(this, 'AmplifyCustomDomain', {
+        value: customDomainName!,
+        description: 'Custom domain attached to the Amplify app',
+      });
+      new cdk.CfnOutput(this, 'AmplifyCustomDomainURL', {
+        value: customDomainUrl,
+        description: 'Custom domain URL (https://<custom-domain>)',
+      });
+    }
     new cdk.CfnOutput(this, 'UpdateFirstSignInEndpoint', {
       value: updateAttributesApi.urlForPath('/update-first-sign-in'),
       description: 'POST requests to this URL to update attributes.',

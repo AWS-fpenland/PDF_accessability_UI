@@ -4,7 +4,8 @@ set -euo pipefail
 # --------------------------------------------------
 # Full Stack Local Deployment Script
 # Deploys both CDK backend and React frontend locally
-# Usage: ./deploy-full-stack-local.sh [PDF_BUCKET] [HTML_BUCKET]
+# Usage: ./deploy-full-stack-local.sh [PDF_BUCKET] [HTML_BUCKET] [CUSTOM_DOMAIN]
+# Or set CUSTOM_DOMAIN as an environment variable.
 # --------------------------------------------------
 
 echo "🚀 Starting Full Stack Local Deployment..."
@@ -16,6 +17,7 @@ echo ""
 # Parse optional arguments
 PDF_TO_PDF_BUCKET="${1:-}"
 PDF_TO_HTML_BUCKET="${2:-}"
+CUSTOM_DOMAIN="${3:-${CUSTOM_DOMAIN:-}}"
 
 # --------------------------------------------------
 # Validate Prerequisites
@@ -57,6 +59,7 @@ echo ""
 echo "📦 Configuration:"
 echo "  - PDF-to-PDF Bucket: ${PDF_TO_PDF_BUCKET:-Not specified}"
 echo "  - PDF-to-HTML Bucket: ${PDF_TO_HTML_BUCKET:-Not specified}"
+echo "  - Custom Domain: ${CUSTOM_DOMAIN:-(none — using default amplifyapp.com URL)}"
 echo ""
 
 # --------------------------------------------------
@@ -89,6 +92,9 @@ if [ -n "$PDF_TO_PDF_BUCKET" ]; then
 fi
 if [ -n "$PDF_TO_HTML_BUCKET" ]; then
   CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS -c PDF_TO_HTML_BUCKET=$PDF_TO_HTML_BUCKET"
+fi
+if [ -n "$CUSTOM_DOMAIN" ]; then
+  CDK_CONTEXT_ARGS="$CDK_CONTEXT_ARGS -c CUSTOM_DOMAIN=$CUSTOM_DOMAIN"
 fi
 
 # Deploy CDK stack
@@ -306,12 +312,22 @@ echo "📊 Frontend:"
 echo "  - Amplify App: $AMPLIFY_APP_ID"
 echo "  - URL: $REACT_APP_AMPLIFY_APP_URL"
 echo "  - Job ID: $JOB_ID"
+if [ -n "${CUSTOM_DOMAIN:-}" ]; then
+  echo "  - Custom Domain: https://$CUSTOM_DOMAIN"
+fi
 echo ""
 echo "🌐 Your application is live at:"
 echo "   $REACT_APP_AMPLIFY_APP_URL"
+if [ -n "${CUSTOM_DOMAIN:-}" ]; then
+  echo ""
+  echo "📝 Custom domain next steps:"
+  echo "   Open the Amplify console for app $AMPLIFY_APP_ID, go to 'Domain management',"
+  echo "   and add the displayed CNAME / verification records to your DNS provider."
+  echo "   Once DNS validates, https://$CUSTOM_DOMAIN will be live."
+fi
 echo ""
 echo "💡 Next deployment:"
-echo "   ./deploy-full-stack-local.sh [PDF_BUCKET] [HTML_BUCKET]"
+echo "   ./deploy-full-stack-local.sh [PDF_BUCKET] [HTML_BUCKET] [CUSTOM_DOMAIN]"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 exit 0

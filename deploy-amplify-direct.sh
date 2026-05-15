@@ -44,6 +44,7 @@ REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT=$(get_output "UpdateFirstSignInEndpoint"
 REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT=$(get_output "CheckUploadQuotaEndpoint")
 REACT_APP_JOB_HISTORY_ENDPOINT=$(get_output "JobHistoryEndpoint")
 REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT=$(get_output "UpdateAttributesApiEndpoint377B5108")
+CUSTOM_DOMAIN_URL=$(get_output "AmplifyCustomDomainURL")
 
 # Get bucket names from stack resources
 PDF_TO_PDF_BUCKET=$(aws cloudformation describe-stack-resources \
@@ -77,6 +78,9 @@ echo "  - Identity Pool ID: $REACT_APP_IDENTITY_POOL_ID"
 echo "  - PDF-to-PDF Bucket: ${PDF_TO_PDF_BUCKET:-Not found}"
 echo "  - PDF-to-HTML Bucket: ${PDF_TO_HTML_BUCKET:-Not found}"
 echo "  - AWS Region: $AWS_REGION"
+if [ -n "${CUSTOM_DOMAIN_URL:-}" ]; then
+  echo "  - Custom Domain: $CUSTOM_DOMAIN_URL"
+fi
 echo ""
 
 # --------------------------------------------------
@@ -318,6 +322,11 @@ echo "  - Status: $DEPLOYMENT_STATUS"
 echo ""
 echo "🌐 Your application should be live at:"
 echo "   $REACT_APP_AMPLIFY_APP_URL"
+if [ -n "${CUSTOM_DOMAIN_URL:-}" ]; then
+  echo ""
+  echo "🌐 Custom domain (once DNS validates):"
+  echo "   $CUSTOM_DOMAIN_URL"
+fi
 echo ""
 echo "📱 View deployment details:"
 echo "   https://console.aws.amazon.com/amplify/home?region=$AWS_REGION#/$AMPLIFY_APP_ID"

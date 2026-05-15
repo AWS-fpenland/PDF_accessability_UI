@@ -59,6 +59,21 @@ case "${SELF_SIGNUP_CHOICE}" in
 esac
 echo "   Self-service signup: $SELF_SIGNUP"
 
+# Prompt for optional custom domain
+echo ""
+echo "🌐 Custom Domain (optional):"
+echo "   Attach a custom domain (e.g., app.example.edu) to the Amplify app."
+echo "   Amplify will provision and renew an ACM certificate automatically."
+echo "   You'll need to add the validation/CNAME records at your DNS provider after deploy."
+echo "   Leave blank to skip and use the default *.amplifyapp.com URL."
+read -rp "Custom domain (or press Enter to skip): " CUSTOM_DOMAIN
+CUSTOM_DOMAIN="${CUSTOM_DOMAIN:-}"
+if [ -n "$CUSTOM_DOMAIN" ]; then
+  echo "   Custom domain: $CUSTOM_DOMAIN"
+else
+  echo "   Custom domain: (none — using default amplifyapp.com URL)"
+fi
+
 # --------------------------------------------------
 # 2. Ensure IAM service role exists
 # --------------------------------------------------
@@ -454,6 +469,15 @@ ENV_VARS_ARRAY="$ENV_VARS_ARRAY"'{
     "type":  "PLAINTEXT"
   }'
 
+# Add CUSTOM_DOMAIN if provided
+if [ -n "${CUSTOM_DOMAIN:-}" ]; then
+  ENV_VARS_ARRAY="$ENV_VARS_ARRAY,"'{
+    "name":  "CUSTOM_DOMAIN",
+    "value": "'"$CUSTOM_DOMAIN"'",
+    "type":  "PLAINTEXT"
+  }'
+fi
+
 BACKEND_ENVIRONMENT='{
   "type": "LINUX_CONTAINER",
   "image": "aws/codebuild/amazonlinux-x86_64-standard:5.0",
@@ -535,7 +559,7 @@ echo "✅ Backend build completed successfully!"
 # --------------------------------------------------
 
 echo "🚀 Starting frontend deployment..."
-./deploy-frontend.sh "$PROJECT_NAME" "$PDF_TO_PDF_BUCKET" "$PDF_TO_HTML_BUCKET" "$ROLE_ARN"
+./deploy-frontend.sh "$PROJECT_NAME" "$PDF_TO_PDF_BUCKET" "$PDF_TO_HTML_BUCKET" "$ROLE_ARN" "${CUSTOM_DOMAIN:-}"
 
 if [ $? -eq 0 ]; then
   echo "✅ Frontend deployment completed successfully!"

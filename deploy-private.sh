@@ -64,6 +64,7 @@ Environment Variables (non-interactive mode):
   PDF_TO_PDF_BUCKET         S3 bucket for PDF-to-PDF backend (at least one bucket required)
   PDF_TO_HTML_BUCKET        S3 bucket for PDF-to-HTML backend (at least one bucket required)
   SELF_SIGNUP               Enable self-service user registration: true or false (default: false)
+  CUSTOM_DOMAIN             Optional custom domain to attach to the Amplify app (e.g., app.example.edu)
 
 Config File Format:
   PRIVATE_REPO_URL=https://github.com/myorg/my-fork.git
@@ -73,6 +74,7 @@ Config File Format:
   PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789-us-east-1
   PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789-us-east-1
   SELF_SIGNUP=false
+  CUSTOM_DOMAIN=app.example.edu
 EOF
 }
 
@@ -184,6 +186,22 @@ collect_parameters() {
     fi
   fi
   print_status "Self-service signup: $SELF_SIGNUP"
+
+  # Optional custom domain (e.g., app.example.edu)
+  if [[ -z "${CUSTOM_DOMAIN:-}" ]]; then
+    if [[ "$NON_INTERACTIVE" != "true" ]]; then
+      echo ""
+      echo "Custom domain (optional) — Amplify will provision an ACM certificate"
+      echo "and you'll need to add the validation/CNAME records at your DNS provider."
+      read -rp "Custom domain (or press Enter to skip): " CUSTOM_DOMAIN
+      CUSTOM_DOMAIN="${CUSTOM_DOMAIN:-}"
+    fi
+  fi
+  if [[ -n "${CUSTOM_DOMAIN:-}" ]]; then
+    print_status "Custom domain: $CUSTOM_DOMAIN"
+  else
+    print_status "Custom domain: (none — using default amplifyapp.com URL)"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -787,6 +805,7 @@ deploy_frontend() {
   add_fe_env "REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT" "$check_upload_quota_endpoint"
   add_fe_env "REACT_APP_JOB_HISTORY_ENDPOINT" "$job_history_endpoint"
   add_fe_env "REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT" "$update_attributes_api_endpoint"
+  add_fe_env "CUSTOM_DOMAIN" "${CUSTOM_DOMAIN:-}"
 
   fe_env_vars+="]"
 
@@ -1009,6 +1028,7 @@ main() {
   add_env "PDF_TO_PDF_BUCKET" "${PDF_TO_PDF_BUCKET:-}"
   add_env "PDF_TO_HTML_BUCKET" "${PDF_TO_HTML_BUCKET:-}"
   add_env "SELF_SIGNUP" "${SELF_SIGNUP:-false}"
+  add_env "CUSTOM_DOMAIN" "${CUSTOM_DOMAIN:-}"
   backend_env_vars+="]"
 
   local backend_project="${PROJECT_NAME}-backend"
@@ -1042,6 +1062,14 @@ main() {
   print_status "CDK Stack:        CdkBackendStack"
   if [[ -n "${AMPLIFY_URL:-}" ]]; then
     print_status "Frontend URL:     $AMPLIFY_URL"
+  fi
+  if [[ -n "${CUSTOM_DOMAIN:-}" ]]; then
+    print_status "Custom Domain:    https://$CUSTOM_DOMAIN"
+    echo ""
+    print_status "Custom domain next steps:"
+    print_status "  Open the Amplify console for the deployed app, go to 'Domain management',"
+    print_status "  and add the displayed CNAME / verification records to your DNS provider."
+    print_status "  Amplify will issue and renew the ACM certificate automatically."
   fi
   echo ""
   print_success "Pipeline setup complete!"

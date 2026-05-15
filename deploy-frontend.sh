@@ -3,7 +3,7 @@ set -euo pipefail
 
 # --------------------------------------------------
 # Frontend Deployment Script
-# Usage: ./deploy-frontend.sh <PROJECT_NAME> <PDF_TO_PDF_BUCKET> <PDF_TO_HTML_BUCKET> <ROLE_ARN>
+# Usage: ./deploy-frontend.sh <PROJECT_NAME> <PDF_TO_PDF_BUCKET> <PDF_TO_HTML_BUCKET> <ROLE_ARN> [CUSTOM_DOMAIN]
 # --------------------------------------------------
 
 # Parse arguments
@@ -11,6 +11,7 @@ PROJECT_NAME="$1"
 PDF_TO_PDF_BUCKET="$2"
 PDF_TO_HTML_BUCKET="$3"
 ROLE_ARN="$4"
+CUSTOM_DOMAIN="${5:-}"
 
 echo "🚀 Starting Frontend Deployment..."
 echo "📋 Parameters:"
@@ -18,6 +19,7 @@ echo "  - PROJECT_NAME: $PROJECT_NAME"
 echo "  - PDF_TO_PDF_BUCKET: $PDF_TO_PDF_BUCKET"
 echo "  - PDF_TO_HTML_BUCKET: $PDF_TO_HTML_BUCKET"
 echo "  - ROLE_ARN: $ROLE_ARN"
+echo "  - CUSTOM_DOMAIN: ${CUSTOM_DOMAIN:-(none)}"
 
 # --------------------------------------------------
 # Retrieve All CDK Outputs
@@ -144,6 +146,7 @@ add_frontend_env_var "REACT_APP_UPDATE_FIRST_SIGN_IN_ENDPOINT" "$REACT_APP_UPDAT
 add_frontend_env_var "REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT" "$REACT_APP_CHECK_UPLOAD_QUOTA_ENDPOINT"
 add_frontend_env_var "REACT_APP_JOB_HISTORY_ENDPOINT" "$REACT_APP_JOB_HISTORY_ENDPOINT"
 add_frontend_env_var "REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT" "$REACT_APP_UPDATE_ATTRIBUTES_API_ENDPOINT"
+add_frontend_env_var "CUSTOM_DOMAIN" "$CUSTOM_DOMAIN"
 
 FRONTEND_ENVIRONMENT='{
   "type": "LINUX_CONTAINER",
@@ -233,5 +236,13 @@ echo "🎉 Frontend Deployment Complete!"
 echo "📊 Summary:"
 echo "  - Frontend Project: $FRONTEND_PROJECT_NAME"
 echo "  - Frontend URL: $REACT_APP_AMPLIFY_APP_URL"
+if [ -n "${CUSTOM_DOMAIN:-}" ]; then
+  echo "  - Custom Domain: https://$CUSTOM_DOMAIN"
+  echo ""
+  echo "📝 Next step for the custom domain:"
+  echo "   Open the Amplify console for app $AMPLIFY_APP_ID, go to 'Domain management',"
+  echo "   and add the displayed CNAME / verification records to your DNS provider."
+  echo "   Amplify will issue and renew the ACM certificate automatically."
+fi
 
 exit 0

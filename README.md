@@ -168,6 +168,7 @@ The script will ask for:
 4. **Connection ARN** — your AWS CodeConnections ARN (not required for CodeCommit)
 5. **Bucket Configuration** — backend S3 bucket names (at least one required)
 6. **User Registration** — enable or disable self-service signup (default: disabled)
+7. **Custom Domain** (optional) — a domain like `app.example.edu` to attach to the Amplify app. Leave blank to use the default `*.amplifyapp.com` URL.
 
 ### Non-Interactive Mode
 
@@ -189,6 +190,7 @@ CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789:connection/abc-123
 PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789-us-east-1
 PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789-us-east-1
 SELF_SIGNUP=false
+CUSTOM_DOMAIN=app.example.edu
 ```
 
 **Using environment variables:**
@@ -201,6 +203,7 @@ export CONNECTION_ARN=arn:aws:codeconnections:us-east-1:123456789:connection/abc
 export PDF_TO_PDF_BUCKET=pdfaccessibility-bucket-123456789-us-east-1
 export PDF_TO_HTML_BUCKET=pdf2html-bucket-123456789-us-east-1
 export SELF_SIGNUP=false
+export CUSTOM_DOMAIN=app.example.edu  # optional
 
 ./deploy-private.sh --non-interactive
 ```
@@ -271,6 +274,16 @@ If you need to configure webhooks manually in the AWS Console (CodeBuild → Bui
 | Start build | FILE_PATH | `^pdf_ui/\|^buildspec-frontend\.yml$` |
 
 Replace `main` with your branch name if different.
+
+### Custom Domain (Optional)
+
+If you set `CUSTOM_DOMAIN` (e.g., `app.example.edu`), Amplify provisions and renews an ACM certificate automatically. After the deployment finishes:
+
+1. Open the AWS Amplify console for the deployed app and go to **Domain management**.
+2. Add the displayed CNAME and verification records to your DNS provider.
+3. Once DNS validates, `https://<your-domain>` will be live alongside the default `*.amplifyapp.com` URL.
+
+The deployment summary printed at the end of `deploy-private.sh` includes the custom domain URL and a reminder of these steps.
 
 ### Cleaning Up Pipeline Resources
 
