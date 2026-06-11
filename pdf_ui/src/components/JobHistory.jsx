@@ -10,7 +10,8 @@ import DownloadIcon from '@mui/icons-material/Download';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DescriptionIcon from '@mui/icons-material/Description';
 import HtmlIcon from '@mui/icons-material/Html';
-import { JobHistoryAPI, region, PRIMARY_MAIN, SECONDARY_MAIN } from '../utilities/constants';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import { JobHistoryAPI, region, PRIMARY_MAIN, SECONDARY_MAIN, VoicePageUrl } from '../utilities/constants';
 
 const statusConfig = {
   complete: { label: 'Complete', color: 'success' },
@@ -64,6 +65,15 @@ export default function JobHistory({ awsCredentials }) {
     } catch (err) {
       console.error('Download failed:', err);
     }
+  };
+
+  // Deep-link a completed HTML document into the Audio Document Library (voice agent).
+  // Passes the document's bucket + result key so the page can converse with it directly.
+  const handleTalk = (job) => {
+    if (!VoicePageUrl || !job.s3_result_key) return;
+    const url = `${VoicePageUrl}?bucket=${encodeURIComponent(job.s3_bucket)}` +
+      `&doc=${encodeURIComponent(job.s3_result_key)}`;
+    window.open(url, '_blank', 'noopener');
   };
 
   const formatDate = (iso) => {
@@ -141,11 +151,24 @@ export default function JobHistory({ awsCredentials }) {
                     <TableCell>{formatDate(job.created_at)}</TableCell>
                     <TableCell>
                       {job.status === 'complete' && job.s3_result_key ? (
-                        <Tooltip title="Download">
-                          <IconButton onClick={() => handleDownload(job)} sx={{ color: PRIMARY_MAIN }}>
-                            <DownloadIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Tooltip title="Download">
+                            <IconButton onClick={() => handleDownload(job)} sx={{ color: PRIMARY_MAIN }}>
+                              <DownloadIcon />
+                            </IconButton>
+                          </Tooltip>
+                          {VoicePageUrl && job.format === 'html' && (
+                            <Tooltip title="Talk to this document">
+                              <IconButton
+                                onClick={() => handleTalk(job)}
+                                aria-label={`Talk to ${job.filename}`}
+                                sx={{ color: SECONDARY_MAIN }}
+                              >
+                                <RecordVoiceOverIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
                       ) : job.status === 'processing' ? (
                         <CircularProgress size={20} sx={{ color: SECONDARY_MAIN }} />
                       ) : (

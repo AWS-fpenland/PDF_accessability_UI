@@ -18,6 +18,11 @@ export const Bucket_Region = process.env.REACT_APP_BUCKET_REGION;
 export const PDFBucket = process.env.REACT_APP_PDF_BUCKET_NAME || 'Null';
 export const HTMLBucket = process.env.REACT_APP_HTML_BUCKET_NAME || 'Null';
 
+// Optional: Audio Document Library (voice agent) page. When set, completed HTML
+// remediations gain a "Talk to this document" action that deep-links to it.
+// Absent/empty => the feature is hidden, so this is a safe additive default.
+export const VoicePageUrl = process.env.REACT_APP_VOICE_PAGE_URL || '';
+
 /**
  * Validate bucket configuration and return deployment status
  * @returns {Object} Validation result with deployment status and missing buckets

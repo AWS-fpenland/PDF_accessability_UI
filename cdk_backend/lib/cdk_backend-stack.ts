@@ -500,7 +500,17 @@ export class CdkBackendStack extends cdk.Stack {
     if (PDF_TO_HTML_BUCKET) {
       mainBranch.addEnvironment('REACT_APP_HTML_BUCKET_NAME', PDF_TO_HTML_BUCKET);
     }
-    
+
+    // Optional: Audio Document Library (voice agent) page. When provided (via the
+    // VOICE_PAGE_URL env var or `-c voicePageUrl=...` context), completed HTML
+    // remediations gain a "Talk to this document" action linking to it. Omitted =>
+    // the UI feature stays hidden, so this is a safe additive integration point.
+    const VOICE_PAGE_URL =
+      process.env.VOICE_PAGE_URL || this.node.tryGetContext('voicePageUrl') || '';
+    if (VOICE_PAGE_URL) {
+      mainBranch.addEnvironment('REACT_APP_VOICE_PAGE_URL', VOICE_PAGE_URL);
+    }
+
     mainBranch.addEnvironment('REACT_APP_USER_POOL_ID', userPool.userPoolId);
     mainBranch.addEnvironment('REACT_APP_AUTHORITY', Authority);
 
