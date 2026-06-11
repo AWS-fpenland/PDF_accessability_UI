@@ -73,6 +73,10 @@ export const JobHistoryAPI = process.env.REACT_APP_JOB_HISTORY_API;
 export const UserPoolClientId = process.env.REACT_APP_USER_POOL_CLIENT_ID;
 export const UserPoolId = process.env.REACT_APP_USER_POOL_ID;
 
+// Optional voice/audio companion (Audio Document Library). When unset, all
+// voice UI is hidden — keeps this feature opt-in per deployment.
+export const VoicePageURL = process.env.REACT_APP_VOICE_PAGE_URL || '';
+
 
 
 

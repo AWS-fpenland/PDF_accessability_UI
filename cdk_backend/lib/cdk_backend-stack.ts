@@ -623,6 +623,14 @@ export class CdkBackendStack extends cdk.Stack {
 
     mainBranch.addEnvironment('REACT_APP_JOB_HISTORY_API', updateAttributesApi.urlForPath('/jobs'));
 
+    // Optional: Audio Document Library (voice agent companion). Set via
+    //   cdk deploy -c voicePageUrl=https://... (or CDK_VOICE_PAGE_URL env).
+    // When absent, the voice UI stays hidden in the frontend.
+    const voicePageUrl = this.node.tryGetContext('voicePageUrl') || process.env.CDK_VOICE_PAGE_URL;
+    if (voicePageUrl) {
+      mainBranch.addEnvironment('REACT_APP_VOICE_PAGE_URL', voicePageUrl);
+    }
+
     // --------------------------- Outputs ------------------------------
     new cdk.CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
     new cdk.CfnOutput(this, 'UserPoolClientId', { value: userPoolClient.userPoolClientId });
